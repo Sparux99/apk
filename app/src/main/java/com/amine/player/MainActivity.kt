@@ -53,6 +53,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
         // RecyclerView + ProgressBar
         videosRecyclerView = findViewById(R.id.videos_recycler_view)
         loadingIndicator = findViewById(R.id.loading_indicator)
