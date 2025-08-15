@@ -44,6 +44,7 @@ android {
 dependencies {
     // Material Design Components
     implementation("com.google.android.material:material:1.10.0")
+    implementation("androidx.core:core-splashscreen:1.0.1") // لإضافة Theme.SplashScreen
 
     // AppCompat
     implementation("androidx.appcompat:appcompat:1.6.1")
