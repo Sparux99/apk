@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- اسم التطبيق -->
-    <string name="app_name">Amine</string>
+    <string name="app_name">AminePlayer</string>
 
     <!-- نصوص أخرى للتجربة -->
     <string name="video_loading">جارٍ تحميل الفيديو...</string>

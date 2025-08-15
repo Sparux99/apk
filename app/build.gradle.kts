@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.amine.app"
+    namespace = "com.amine.player"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.amine.app"
+        applicationId = "com.amine.player"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
@@ -53,6 +53,15 @@ dependencies {
 
     // ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    
+     // Google's Media3 (ExoPlayer) for video playback
+    implementation "androidx.media3:media3-exoplayer:1.3.1"
+    implementation "androidx.media3:media3-ui:1.3.1"
+
+    // For RecyclerView to show video list
+    implementation "androidx.recyclerview:recyclerview:1.3.2"
+
+    implementation("com.github.bumptech.glid:glid:4.16.0") // مكتبة Glide لتحميل الصور
 
     // اختبار الوحدة
     testImplementation("junit:junit:4.13.2")
