@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.appliberated.helloworldselfaware"
+    namespace = "com.amine.app"
     compileSdk = 35
 
     defaultConfig {
