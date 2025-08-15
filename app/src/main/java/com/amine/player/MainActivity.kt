@@ -1,4 +1,4 @@
-package com.amine.player
+package com.amine.player 
 
 import android.Manifest
 import android.content.ContentUris
@@ -7,17 +7,15 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -32,25 +30,15 @@ class MainActivity : AppCompatActivity() {
             if (isGranted) {
                 loadVideos()
             } else {
-                Log.w("Permission", "Permission denied by user")
+                // يمكنك إظهار رسالة للمستخدم هنا تشرح لماذا تحتاج الإذن
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // SplashScreen
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // التحقق من توافق اسم الحزمة
-        val expectedPackageName = "com.amine.player"
-        val actualPackageName = packageName
-        if (actualPackageName != expectedPackageName) {
-            throw IllegalStateException("Package name mismatch: expected $expectedPackageName but got $actualPackageName")
-        }
-        Log.d("AppConsistencyCheck", "MainActivity started successfully! Package name is consistent.")
-
-        // ربط عناصر الواجهة
         videosRecyclerView = findViewById(R.id.videos_recycler_view)
         loadingIndicator = findViewById(R.id.loading_indicator)
         videosRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -77,13 +65,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadVideos() {
         loadingIndicator.visibility = View.VISIBLE
-
-        // استخدام lifecycleScope بدلاً من GlobalScope
-        lifecycleScope.launch(Dispatchers.IO) {
+        
+        GlobalScope.launch(Dispatchers.IO) {
             val videoList = fetchVideosFromDevice()
             withContext(Dispatchers.Main) {
                 loadingIndicator.visibility = View.GONE
                 videoAdapter = VideoAdapter(videoList) { video ->
+                    // الكود الذي سينفذ عند الضغط على فيديو
                     val intent = Intent(this@MainActivity, PlayerActivity::class.java).apply {
                         data = video.contentUri
                     }
