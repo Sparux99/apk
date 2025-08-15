@@ -6,10 +6,10 @@
         <item name="postSplashScreenTheme">@style/Theme.Amine</item>
     </style>
 
-    <style name="Theme.Amine" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.MyPlayer" parent="Theme.Material3.DayNight.NoActionBar">
         </style>
 
-    <style name="Theme.Amine.Player" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.MyPlayer.Player" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
