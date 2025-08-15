@@ -54,19 +54,20 @@ dependencies {
     // ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     
-     // Google's Media3 (ExoPlayer) for video playback
-    implementation "androidx.media3:media3-exoplayer:1.3.1"
-    implementation "androidx.media3:media3-ui:1.3.1"
+    // Google's Media3 (ExoPlayer) for video playback
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
 
-    // For RecyclerView to show video list
-    implementation "androidx.recyclerview:recyclerview:1.3.2"
+    // RecyclerView to show video list
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
-    implementation("com.github.bumptech.glid:glid:4.16.0") // مكتبة Glide لتحميل الصور
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
-    // اختبار الوحدة
+    // Unit testing
     testImplementation("junit:junit:4.13.2")
 
-    // اختبار أندرويد
+    // Android testing
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
