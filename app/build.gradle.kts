@@ -11,7 +11,7 @@ android {
         applicationId = "com.amine.player"
         minSdk = 21
         targetSdk = 35
-        versionCode = 2
+        versionCode = 1
         versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -41,12 +41,6 @@ android {
     }
 }
 
-repositories {
-    google()
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") } // لإضافة مكتبات من GitHub مثل DoubleTapPlayerView
-}
-
 dependencies {
     // Material Design Components
     implementation("com.google.android.material:material:1.10.0")
@@ -72,6 +66,13 @@ dependencies {
 
     // DoubleTapPlayerView (من JitPack)
     implementation("com.github.vkay94:DoubleTapPlayerView:master-SNAPSHOT")
+
+    // Unit testing
+    testImplementation("junit:junit:4.13.2")
+
+    // Android testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     // Unit testing
     testImplementation("junit:junit:4.13.2")
