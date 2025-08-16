@@ -7,7 +7,7 @@
     </style>
 
     <!-- ▼▼▼ RENAMED FROM Theme.MyPlayer TO Theme.Amine ▼▼▼ -->
-    <style name="Theme.Amine" parent="Theme.Material3.DayNight">
+    <style name="Theme.Aminep" parent="Theme.Material3.DayNight">
     </style>
 
     <!-- ▼▼▼ RENAMED FROM Theme.MyPlayer.Player TO Theme.Amine.Player ▼▼▼ -->

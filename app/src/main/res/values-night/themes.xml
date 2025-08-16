@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- ▼▼▼ RENAMED FROM Base.Theme.MyPlayer TO Theme.Amine ▼▼▼ -->
-    <style name="Theme.Amine" parent="Theme.Material3.DayNight">
+    <style name="Theme.Aminep" parent="Theme.Material3.DayNight">
     </style>
 </resources>
