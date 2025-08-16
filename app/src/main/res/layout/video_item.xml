@@ -36,7 +36,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?attr/materialDivider"
+        android:background="#D3D3D3"
         android:layout_marginStart="112dp" />
 
 </LinearLayout>
