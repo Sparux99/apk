@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Hello World Self-Aware"
+rootProject.name = "Amine PLayer"
 include(":app")

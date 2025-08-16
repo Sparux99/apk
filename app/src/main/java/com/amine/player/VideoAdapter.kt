@@ -31,7 +31,7 @@ class VideoAdapter(
         private val title: TextView = itemView.findViewById(R.id.video_title)
 
         fun bind(video: Video) {
-            title.text = video.title
+            title.text = video.title.substringBeforeLast('.')
             
             // استخدام Glide لتحميل الصورة المصغرة بكفاءة
             Glide.with(itemView.context)
