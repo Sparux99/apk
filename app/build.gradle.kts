@@ -64,8 +64,6 @@ dependencies {
     // ExoPlayer
     implementation("com.google.android.exoplayer:exoplayer:2.19.0")
 
-    // DoubleTapPlayerView (من JitPack)
-    implementation("com.github.vkay94:DoubleTapPlayerView:master-SNAPSHOT")
 
     // Unit testing
     testImplementation("junit:junit:4.13.2")
