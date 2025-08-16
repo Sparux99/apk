@@ -8,16 +8,7 @@
     android:background="@android:color/black"
     tools:context=".PlayerActivity">
 
-    <com.github.dimezis.gestureviews.GesturePlayerView
-    android:id="@+id/player_view"
-    android:layout_width="0dp"
-    android:layout_height="0dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent" />
-    
-    <androidx.media3.ui.PlayerView
+    <com.github.vkay94.dtpv.DoubleTapPlayerView
         android:id="@+id/player_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -25,4 +16,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

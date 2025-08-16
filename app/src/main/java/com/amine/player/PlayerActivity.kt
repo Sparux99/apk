@@ -1,5 +1,4 @@
 package com.amine.player
-package com.amine.player
 
 import android.content.Context
 import android.net.Uri
@@ -12,11 +11,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.github.vkay94.dtpv.DoubleTapPlayerView
 
 class PlayerActivity : AppCompatActivity() {
 
     private var player: ExoPlayer? = null
-    private lateinit var playerView: com.github.dimezis.gestureviews.GesturePlayerView
+    private lateinit var playerView: DoubleTapPlayerView
     private lateinit var playerView: PlayerView
     private var videoUri: Uri? = null
 
