@@ -11,7 +11,7 @@ android {
         applicationId = "com.amine.player"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
+        versionCode = 2
         versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -41,10 +41,16 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") } // لإضافة مكتبات من GitHub مثل DoubleTapPlayerView
+}
+
 dependencies {
     // Material Design Components
     implementation("com.google.android.material:material:1.10.0")
-    implementation("androidx.core:core-splashscreen:1.0.1") // لإضافة Theme.SplashScreen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // AppCompat
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -54,19 +60,18 @@ dependencies {
 
     // ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    
-    // Google's Media3 (ExoPlayer) for video playback
-    implementation("com.github.vkay94:DoubleTapPlayerView:master-SNAPSHOT")
 
-    //implementation("androidx.media3:media3-exoplayer:1.3.1")
-    //implementation("androidx.media3:media3-ui:1.3.1")
-    implementation("com.google.android.exoplayer:exoplayer:2.19.0")
-
-    // RecyclerView to show video list
+    // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
-    // Glide for image loading
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // ExoPlayer
+    implementation("com.google.android.exoplayer:exoplayer:2.19.0")
+
+    // DoubleTapPlayerView (من JitPack)
+    implementation("com.github.vkay94:DoubleTapPlayerView:master-SNAPSHOT")
 
     // Unit testing
     testImplementation("junit:junit:4.13.2")
