@@ -17,7 +17,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private var player: ExoPlayer? = null
     private lateinit var playerView: DoubleTapPlayerView
-    private lateinit var playerView: PlayerView
     private var videoUri: Uri? = null
 
     // ▼▼▼ متغيرات جديدة لحفظ مكان التوقف ▼▼▼
