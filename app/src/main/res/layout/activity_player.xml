@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
-            android:progressTint="?attr/colorPrimary"   
+            android:progressTint="?attr/colorPrimary"
             android:thumbTint="?attr/colorPrimary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -55,7 +55,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_lock_open"        
+            android:src="@drawable/ic_lock_open"
             android:contentDescription="@string/cd_lock"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
