@@ -1,64 +1,144 @@
-<!-- layout: res/layout/activity_player_custom.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <!-- 1) فيديو (الطبقة الأسفل) -->
+
+    <!-- Player (base layer) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:use_controller="false"    
+        app:use_controller="false"
         app:show_shuffle_button="false"
         app:show_subtitle_button="false" />
-    <!-- 2) overlay controls (شفافة وتجلس فوق الفيديو) -->
+
+    <!-- Overlay controls (transparent layer above the video) -->
     <RelativeLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent">
-        <!-- top translucent bar (seek + time) -->
+
+        <!-- Top translucent bar with position, seek and duration -->
         <LinearLayout
             android:id="@+id/top_bar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:orientation="horizontal"
             android:padding="8dp"
-            android:background="#66000000"   
+            android:gravity="center_vertical"
+            android:background="#66000000"
             android:layout_alignParentTop="true">
-            <TextView ... android:id="@+id/tv_position" />
+
+            <TextView
+                android:id="@+id/tv_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="#FFFFFF"
+                android:paddingEnd="8dp"
+                android:textSize="13sp" />
+
             <SeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:progressTint="@color/accent" />
-            <TextView ... android:id="@+id/tv_duration" />
+                android:layout_weight="1"
+                android:progressTint="#03DAC5"
+                android:thumbTint="#03DAC5" />
+
+            <TextView
+                android:id="@+id/tv_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="#FFFFFF"
+                android:paddingStart="8dp"
+                android:textSize="13sp" />
         </LinearLayout>
-        <!-- center big play/pause -->
+
+        <!-- Center play/pause button -->
         <ImageButton
             android:id="@+id/btn_play_pause"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_centerInParent="true"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_play" />
-        <!-- bottom small controls (skip back, speed, skip forward, fullscreen, lock) -->
+            android:src="@drawable/ic_play"
+            android:contentDescription="Play/Pause" />
+
+        <!-- Bottom bar with small controls -->
         <LinearLayout
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="8dp"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:background="#44000000">
-            <ImageButton android:id="@+id/btn_skip_back" ... />
-            <ImageButton android:id="@+id/btn_speed" ... />
-            <ImageButton android:id="@+id/btn_skip_forward" ... />
-            <View android:layout_weight="1" android:layout_width="0dp"/>
-            <ImageButton android:id="@+id/btn_fullscreen" ... />
-            <ImageButton android:id="@+id/btn_lock" ... />
+
+            <ImageButton
+                android:id="@+id/btn_skip_back"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_skip_back"
+                android:contentDescription="Skip back" />
+
+            <ImageButton
+                android:id="@+id/btn_speed"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_speed"
+                android:contentDescription="Playback speed" />
+
+            <ImageButton
+                android:id="@+id/btn_skip_forward"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_skip_forward"
+                android:contentDescription="Skip forward" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btn_fullscreen"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_fullscreen"
+                android:contentDescription="Fullscreen" />
+
+            <ImageButton
+                android:id="@+id/btn_lock"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_lock_open"
+                android:contentDescription="Lock controls" />
         </LinearLayout>
+
+        <!-- Overlay text for feedback (volume/brightness/seek) -->
+        <TextView
+            android:id="@+id/tv_overlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="24dp"
+            android:padding="12dp"
+            android:background="#80000000"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
     </RelativeLayout>
 </FrameLayout>
