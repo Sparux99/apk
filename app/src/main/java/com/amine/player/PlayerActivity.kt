@@ -11,12 +11,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.github.vkay94.dtpv.DoubleTapPlayerView
 
 class PlayerActivity : AppCompatActivity() {
 
     private var player: ExoPlayer? = null
-    private lateinit var playerView: DoubleTapPlayerView
+    private lateinit var playerView: playerView
     private var videoUri: Uri? = null
 
     // ▼▼▼ متغيرات جديدة لحفظ مكان التوقف ▼▼▼

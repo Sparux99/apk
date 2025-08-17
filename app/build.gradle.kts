@@ -56,7 +56,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     
     // Google's Media3 (ExoPlayer) for video playback
-    implementation("com.github.vkay94:DoubleTapPlayerView:master-SNAPSHOT")
     implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
 
