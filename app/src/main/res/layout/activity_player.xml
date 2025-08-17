@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
-            android:progressTint="?attr/colorPrimary"   <!-- لون الشريط: يستخدم اللون الأساسي للتطبيق -->
+            android:progressTint="?attr/colorPrimary"   
             android:thumbTint="?attr/colorPrimary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
