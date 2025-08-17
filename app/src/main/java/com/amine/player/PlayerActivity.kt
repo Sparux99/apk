@@ -24,11 +24,14 @@ import kotlin.math.min
 
 class PlayerActivity : AppCompatActivity() {
 
+    // مشغل الفيديو ExoPlayer
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
 
-    // overlay controls
+    // عناصر التحكم المخصصة (overlay controls)
     private lateinit var seekBar: SeekBar
+    private lateinit var tvPosition: TextView
+    private lateinit var tvDuration: TextView
     private lateinit var tvOverlay: TextView
     private lateinit var btnFullscreen: ImageButton
     private lateinit var btnLock: ImageButton
@@ -41,7 +44,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var videoUriString: String? = null
 
-    // gesture state
+    // حالة الإيماءات
     private var startX = 0f
     private var startY = 0f
     private var isDragging = false
@@ -49,10 +52,13 @@ class PlayerActivity : AppCompatActivity() {
     private var initialVolume = 0
     private var initialBrightness = 0f
     private var initialPosition = 0L
+    private val gestureTolerance = 30f // حساسية الإيماءة
 
+    // حالة الشاشة والقفل
     private var isLocked = false
     private var isFullscreen = false
 
+    // معالج الرسائل لتأخير الإجراءات
     private val handler = Handler(Looper.getMainLooper())
     private val autoHideDelay = 3000L
     private val textHideDelay = 1400L
@@ -60,32 +66,40 @@ class PlayerActivity : AppCompatActivity() {
     private val hideControlsRunnable = Runnable { overlay.visibility = View.GONE }
     private val hideOverlayTextRunnable = Runnable { tvOverlay.visibility = View.GONE }
 
+    // مُحدِّث شريط التقدم والوقت
     private val updateProgressRunnable = object : Runnable {
         override fun run() {
             val p = player
             if (p != null && p.duration > 0) {
                 val pos = p.currentPosition
                 val dur = p.duration
+                // تحديث شريط التقدم
                 seekBar.max = (dur / 1000).toInt()
                 seekBar.progress = (pos / 1000).toInt()
+                // تحديث نصوص الوقت (التقدم والمدة الإجمالية)
+                tvPosition.text = formatTime(pos)
+                tvDuration.text = formatTime(dur)
             }
             handler.postDelayed(this, 500)
         }
     }
 
+    // وضع الإيماءة (لا شيء، صوت، إضاءة، تقدم)
     enum class GestureMode { NONE, VOLUME, BRIGHTNESS, SEEK }
 
+    // دالة onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_player) // ملف XML الذي سترفعه/تستبدله
+        setContentView(R.layout.activity_player)
 
+        // ربط عناصر الواجهة بمتغيراتها
         playerView = findViewById(R.id.player_view)
-        // تأكد تعطيل الكنترول الافتراضي
-        playerView.useController = false
-
+        playerView.useController = false // تعطيل شريط التحكم الافتراضي
         overlay = findViewById(R.id.overlay)
         topBar = findViewById(R.id.top_bar)
         seekBar = findViewById(R.id.seekBar)
+        tvPosition = findViewById(R.id.tv_position)
+        tvDuration = findViewById(R.id.tv_duration)
         tvOverlay = findViewById(R.id.tv_overlay)
         btnFullscreen = findViewById(R.id.btn_fullscreen)
         btnLock = findViewById(R.id.btn_lock)
@@ -96,7 +110,7 @@ class PlayerActivity : AppCompatActivity() {
 
         videoUriString = intent?.dataString
 
-        // UI actions
+        // معالجة ضغط الأزرار
         btnFullscreen.setOnClickListener { toggleFullscreen(); showControls() }
         btnLock.setOnClickListener { toggleLock(); showControls() }
         btnPlayPause.setOnClickListener { togglePlayPause(); showControls() }
@@ -104,6 +118,7 @@ class PlayerActivity : AppCompatActivity() {
         btnSkipForward.setOnClickListener { skipSeconds(+10_000L); showControls() }
         btnSpeed.setOnClickListener { showSpeedMenu(it as View); showControls() }
 
+        // معالجة تغيير شريط التقدم
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) player?.seekTo(progress.toLong() * 1000L)
@@ -112,13 +127,19 @@ class PlayerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar?) { handler.postDelayed(hideControlsRunnable, autoHideDelay) }
         })
 
-        // tap overlay to toggle controls
-        playerView.setOnClickListener { if (!isLocked) toggleControlsVisibility() }
-
-        // gesture handling (volume/brightness/seek)
+        // معالجة اللمسات والإيماءات على شاشة المشغل
         playerView.setOnTouchListener { v, event ->
-            if (isLocked) return@setOnTouchListener true
+            // إذا كانت الشاشة مقفلة، فقط تفاعل مع النقر لإلغاء القفل
+            if (isLocked) {
+                if (event.action == MotionEvent.ACTION_UP) {
+                    btnLock.isVisible = true
+                    btnLock.performClick()
+                    return@setOnTouchListener true
+                }
+                return@setOnTouchListener true
+            }
 
+            // منطق الإيماءات (صوت/إضاءة/تقدم)
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     startX = event.x; startY = event.y
@@ -133,28 +154,35 @@ class PlayerActivity : AppCompatActivity() {
                     val dx = event.x - startX
                     val dy = event.y - startY
                     if (gestureMode == GestureMode.NONE) {
-                        if (abs(dx) > abs(dy)) gestureMode = GestureMode.SEEK
-                        else {
+                        // تحديد وضع الإيماءة بناءً على السحب الأولي
+                        if (abs(dx) > abs(dy) && abs(dx) > gestureTolerance) {
+                            gestureMode = GestureMode.SEEK // سحب أفقي للتقدم
+                        } else if (abs(dy) > abs(dx) && abs(dy) > gestureTolerance) {
+                            // سحب عمودي للصوت أو الإضاءة
                             val half = v.width / 2
                             gestureMode = if (startX < half) GestureMode.BRIGHTNESS else GestureMode.VOLUME
+                        } else {
+                            return@setOnTouchListener false
                         }
                     }
+                    // التعامل مع الإيماءات بناءً على الوضع
                     when (gestureMode) {
                         GestureMode.VOLUME -> {
                             handleVolumeGesture(dy)
-                            showOverlayText("Volume: ${getCurrentVolume()}%")
+                            showOverlayText("الصوت: ${getCurrentVolume()}%")
                         }
                         GestureMode.BRIGHTNESS -> {
                             handleBrightnessGesture(dy)
-                            showOverlayText("Brightness: ${(window.attributes.screenBrightness * 100).toInt()}%")
+                            val brightness = window.attributes.screenBrightness
+                            showOverlayText("الإضاءة: ${(brightness * 100).toInt()}%")
                         }
                         GestureMode.SEEK -> {
                             handleSeekGesture(dx)
-                            showOverlayText("Seek: ${ (player?.currentPosition ?: 0L) / 1000 }s")
+                            showOverlayText("التقدم: ${formatTime(player?.currentPosition ?: 0L)}")
                         }
                         else -> {}
                     }
-                    showControls() // keep controls visible while interacting
+                    showControls()
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     isDragging = false
@@ -165,21 +193,31 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    // controls visibility helpers
+    // دالة مساعدة لتنسيق الوقت (من ms إلى min:ss)
+    private fun formatTime(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return String.format("%d:%02d", minutes, seconds)
+    }
+
+    // إظهار وإخفاء عناصر التحكم
     private fun showControls() {
         handler.removeCallbacks(hideControlsRunnable)
         overlay.visibility = View.VISIBLE
-        // animate if desired
         handler.postDelayed(hideControlsRunnable, autoHideDelay)
     }
+
     private fun hideControls() {
         handler.removeCallbacks(hideControlsRunnable)
         overlay.visibility = View.GONE
     }
+
     private fun toggleControlsVisibility() {
         if (overlay.visibility == View.VISIBLE) hideControls() else showControls()
     }
 
+    // إظهار النص الخاص بالإيماءات
     private fun showOverlayText(text: String) {
         tvOverlay.text = text
         tvOverlay.visibility = View.VISIBLE
@@ -187,17 +225,19 @@ class PlayerActivity : AppCompatActivity() {
         handler.postDelayed(hideOverlayTextRunnable, textHideDelay)
     }
 
-    // playback controls
+    // التحكم في التشغيل
     private fun togglePlayPause() {
         player?.let { p ->
             if (p.isPlaying) p.pause() else p.play()
             updatePlayIcon()
         }
     }
+
     private fun updatePlayIcon() {
         val playing = player?.isPlaying == true
         btnPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
     }
+
     private fun skipSeconds(deltaMs: Long) {
         player?.let { p ->
             val target = min(max(0L, p.currentPosition + deltaMs), if (p.duration > 0) p.duration else Long.MAX_VALUE)
@@ -205,6 +245,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // قائمة سرعة التشغيل
     private fun showSpeedMenu(anchor: View) {
         val popup = PopupMenu(this, anchor)
         val speeds = listOf(0.5f, 1f, 1.25f, 1.5f, 2f)
@@ -218,23 +259,20 @@ class PlayerActivity : AppCompatActivity() {
         popup.show()
     }
 
-    // existing gesture handlers (volume/brightness/seek) reused
+    // معالجات الإيماءات
     private fun handleVolumeGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH)
+        val delta = (-dy / screenH) * 2.0f // تقليل الحساسية
         val audio = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val max = audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
-        var newVol = (initialVolume + (delta * max)).toInt()
-        if (newVol < 0) newVol = 0
-        if (newVol > max) newVol = max
+        val newVol = (initialVolume + (delta * max)).toInt().coerceIn(0, max)
         audio.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, newVol, 0)
     }
 
     private fun handleBrightnessGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH)
-        var newBrightness = initialBrightness + delta
-        newBrightness = newBrightness.coerceIn(0f, 1f)
+        val delta = (-dy / screenH) * 2.0f // تقليل الحساسية
+        val newBrightness = (initialBrightness + delta).coerceIn(0f, 1f)
         val lp = window.attributes
         lp.screenBrightness = newBrightness
         window.attributes = lp
@@ -244,20 +282,20 @@ class PlayerActivity : AppCompatActivity() {
         val w = resources.displayMetrics.widthPixels
         val duration = player?.duration ?: 0L
         if (duration <= 0) return
-        val deltaMs = ((dx / w) * (duration * 0.3)).toLong()
-        var target = initialPosition + deltaMs
-        target = target.coerceIn(0L, duration)
+        val deltaMs = ((dx / w) * (duration * 0.1)).toLong() // تقليل الحساسية
+        val target = (initialPosition + deltaMs).coerceIn(0L, duration)
         player?.seekTo(target)
     }
 
-    private fun getCurrentVolumePercent(): Int {
+    // الحصول على مستوى الصوت الحالي
+    private fun getCurrentVolume(): Int {
         val audio = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val max = audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
         val cur = audio.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
         return (cur * 100) / max
     }
-    private fun getCurrentVolume(): Int = getCurrentVolumePercent()
 
+    // التبديل بين وضع ملء الشاشة والوضع العادي
     private fun toggleFullscreen() {
         isFullscreen = !isFullscreen
         if (isFullscreen) {
@@ -269,16 +307,29 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // قفل الشاشة
     private fun toggleLock() {
         isLocked = !isLocked
         val resName = if (isLocked) "ic_lock_closed" else "ic_lock_open"
         val resId = resources.getIdentifier(resName, "drawable", packageName)
-        if (resId != 0) btnLock.setImageResource(resId) else btnLock.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-        btnFullscreen.isVisible = !isLocked
-        seekBar.isEnabled = !isLocked
+        btnLock.setImageResource(if (resId != 0) resId else android.R.drawable.ic_menu_close_clear_cancel)
+
+        if (isLocked) {
+            // إخفاء جميع عناصر التحكم
+            overlay.visibility = View.GONE
+            btnLock.isVisible = true // باستثناء زر القفل
+            btnFullscreen.isVisible = false
+            seekBar.isEnabled = false
+        } else {
+            // إظهار عناصر التحكم
+            overlay.visibility = View.VISIBLE
+            btnFullscreen.isVisible = true
+            seekBar.isEnabled = true
+            showControls()
+        }
     }
 
-    // initialize player (nullable)
+    // تهيئة المشغل
     private fun initializePlayer(uriString: String?) {
         val uriToPlay = uriString ?: return
         player = ExoPlayer.Builder(this).build().also { exo ->
@@ -292,12 +343,14 @@ class PlayerActivity : AppCompatActivity() {
         handler.post(updateProgressRunnable)
     }
 
+    // إطلاق موارد المشغل
     private fun releasePlayer() {
         handler.removeCallbacks(updateProgressRunnable)
         player?.release()
         player = null
     }
 
+    // دورة حياة النشاط
     override fun onStart() {
         super.onStart()
         initializePlayer(videoUriString)

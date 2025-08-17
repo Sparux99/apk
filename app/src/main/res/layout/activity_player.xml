@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Player (base layer) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
@@ -14,14 +13,12 @@
         app:show_shuffle_button="false"
         app:show_subtitle_button="false" />
 
-    <!-- Overlay controls (transparent layer above the video) -->
     <RelativeLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent">
 
-        <!-- Top translucent bar with position, seek and duration -->
         <LinearLayout
             android:id="@+id/top_bar"
             android:layout_width="match_parent"
@@ -30,9 +27,7 @@
             android:padding="8dp"
             android:gravity="center_vertical"
             android:background="#66000000"
-            android:layout_alignParentTop="true">
-
-            <TextView
+            android:layout_alignParentBottom="true"> <TextView
                 android:id="@+id/tv_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -59,23 +54,18 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Center play/pause button -->
         <ImageButton
             android:id="@+id/btn_play_pause"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_centerInParent="true"
+            android:layout_width="120dp" android:layout_height="120dp" android:layout_centerInParent="true"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_play"
             android:contentDescription="Play/Pause" />
 
-        <!-- Bottom bar with small controls -->
         <LinearLayout
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal"
+            android:layout_above="@id/top_bar" android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
@@ -127,13 +117,11 @@
                 android:contentDescription="Lock controls" />
         </LinearLayout>
 
-        <!-- Overlay text for feedback (volume/brightness/seek) -->
         <TextView
             android:id="@+id/tv_overlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="24dp"
+            android:layout_centerInParent="true"
             android:padding="12dp"
             android:background="#80000000"
             android:textColor="#FFFFFF"
