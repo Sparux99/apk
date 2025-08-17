@@ -2,12 +2,10 @@ package com.amine.player
 
 import android.content.Context
 import android.content.pm.ActivityInfo
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -59,6 +57,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // عدّل الاسم هنا إذا كنت تستخدم activity_player_custom.xml
         setContentView(R.layout.activity_player)
 
         playerView = findViewById(R.id.player_view)
@@ -112,11 +111,10 @@ class PlayerActivity : AppCompatActivity() {
                         if (kotlin.math.abs(dx) > kotlin.math.abs(dy)) {
                             gestureMode = GestureMode.SEEK
                         } else {
-                            // vertical: left half -> brightness, right half -> volume
                             val half = v.width / 2
                             gestureMode = if (startX < half) GestureMode.BRIGHTNESS else GestureMode.VOLUME
                         }
-                    } 
+                    }
 
                     when (gestureMode) {
                         GestureMode.VOLUME -> handleVolumeGesture(dy)
@@ -127,11 +125,8 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // finalize seek if any
                     if (gestureMode == GestureMode.SEEK) {
-                        // nothing extra because we updated seek on move; ensure final
-                        val finalPos = player?.currentPosition ?: initialPosition
-                        tvOverlay.text = "" // hide
+                        tvOverlay.text = ""
                         tvOverlay.isVisible = false
                     }
                     isDragging = false
@@ -143,9 +138,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun handleVolumeGesture(dy: Float) {
-        // dy positive -> moving down -> decrease volume
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH) // normalized -1..1
+        val delta = (-dy / screenH)
         val audio = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val max = audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
         var newVol = (initialVolume + (delta * max)).toInt()
@@ -159,7 +153,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun handleBrightnessGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH) // normalized
+        val delta = (-dy / screenH)
         var newBrightness = initialBrightness + delta
         if (newBrightness < 0f) newBrightness = 0f
         if (newBrightness > 1f) newBrightness = 1f
@@ -175,7 +169,6 @@ class PlayerActivity : AppCompatActivity() {
         val w = resources.displayMetrics.widthPixels
         val duration = player?.duration ?: 0L
         if (duration <= 0) return
-        // map dx to +/- 30% of duration
         val deltaMs = ((dx / w) * (duration * 0.3)).toLong()
         var target = initialPosition + deltaMs
         if (target < 0) target = 0
@@ -203,15 +196,25 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun toggleLock() {
-    isLocked = !isLocked
-    btnLock.setImageResource(if (isLocked) R.drawable.ic_lock_closed else R.drawable.ic_lock_open)
-    btnFullscreen.isVisible = !isLocked
-    btnLock.isVisible = true
-    seekBar.isEnabled = !isLocked
-}
+        isLocked = !isLocked
 
+        // حاول إيجاد drawable محلي أولاً، وإلا استخدم أيقونة افتراضية
+        val resName = if (isLocked) "ic_lock_closed" else "ic_lock_open"
+        val resId = resources.getIdentifier(resName, "drawable", packageName)
+        if (resId != 0) {
+            btnLock.setImageResource(resId)
+        } else {
+            // أيقونة افتراضية احتياطية (آمنة)
+            btnLock.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+        }
 
-    private fun initializePlayer(uriString: String) {
+        btnFullscreen.isVisible = !isLocked
+        btnLock.isVisible = true
+        seekBar.isEnabled = !isLocked
+    }
+
+    // قبول nullable الآن -> لا يحدث Type mismatch عند الاستدعاء
+    private fun initializePlayer(uriString: String?) {
         val uriToPlay = uriString ?: return
         player = ExoPlayer.Builder(this).build().also { exo ->
             playerView.player = exo
@@ -236,7 +239,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // resume progress updates
         handler.post(updateProgressRunnable)
     }
 
