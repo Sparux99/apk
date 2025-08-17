@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlin.math.abs
@@ -41,7 +42,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var btnSkipForward: ImageButton
     private lateinit var btnSpeed: ImageButton
     private lateinit var overlay: View
-    private lateinit var topBar: View
     private lateinit var brightnessBar: ProgressBar
     private lateinit var volumeBar: ProgressBar
 
@@ -55,7 +55,7 @@ class PlayerActivity : AppCompatActivity() {
     private var initialVolume = 0
     private var initialBrightness = 0f
     private var initialPosition = 0L
-    private val gestureTolerance = 20f // حساسية الإيماءة (تم تخفيضها)
+    private val gestureTolerance = 20f
 
     // حالة الشاشة والقفل
     private var isLocked = false
@@ -74,7 +74,6 @@ class PlayerActivity : AppCompatActivity() {
         volumeBar.visibility = View.GONE
     }
 
-    // مُحدِّث شريط التقدم والوقت
     private val updateProgressRunnable = object : Runnable {
         override fun run() {
             val p = player
@@ -90,17 +89,16 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    // وضع الإيماءة
     enum class GestureMode { NONE, VOLUME, BRIGHTNESS, SEEK, TAP }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
 
+        // ربط عناصر الواجهة بمتغيراتها
         playerView = findViewById(R.id.player_view)
         playerView.useController = false
         overlay = findViewById(R.id.overlay)
-        topBar = findViewById(R.id.top_bar)
         seekBar = findViewById(R.id.seekBar)
         tvPosition = findViewById(R.id.tv_position)
         tvDuration = findViewById(R.id.tv_duration)
@@ -124,7 +122,6 @@ class PlayerActivity : AppCompatActivity() {
         btnSkipForward.setOnClickListener { skipSeconds(+10_000L); showControls() }
         btnSpeed.setOnClickListener { showSpeedMenu(it as View); showControls() }
 
-        // معالجة شريط التقدم
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) player?.seekTo(progress.toLong() * 1000L)
@@ -149,8 +146,7 @@ class PlayerActivity : AppCompatActivity() {
                     startX = event.x; startY = event.y
                     isDragging = true; gestureMode = GestureMode.NONE
                     initialVolume = getCurrentVolume()
-                    initialBrightness = window.attributes.screenBrightness
-                    if (initialBrightness < 0f) initialBrightness = 0.5f
+                    initialBrightness = window.attributes.screenBrightness.let { if (it < 0f) 0.5f else it }
                     initialPosition = player?.currentPosition ?: 0L
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -168,7 +164,7 @@ class PlayerActivity : AppCompatActivity() {
                                 gestureMode = if (startX < half) GestureMode.BRIGHTNESS else GestureMode.VOLUME
                             }
                         } else {
-                            return@setOnTouchListener false // تجاهل الحركات الصغيرة جداً
+                            return@setOnTouchListener false
                         }
                     }
 
@@ -194,7 +190,6 @@ class PlayerActivity : AppCompatActivity() {
                     val dy = event.y - startY
                     val distance = kotlin.math.sqrt(dx * dx + dy * dy)
                     if (distance < gestureTolerance) {
-                        // إذا كانت الحركة مجرد نقرة، شغل/أخفي عناصر التحكم
                         toggleControlsVisibility()
                     }
                     isDragging = false
@@ -267,10 +262,10 @@ class PlayerActivity : AppCompatActivity() {
         popup.show()
     }
 
-    // معالجات الإيماءات (تم تحسين الحسابات)
+    // معالجات الإيماءات
     private fun handleVolumeGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH) * 2.5f // تحكم أفضل في الحساسية
+        val delta = (-dy / screenH) * 2.5f
         val audio = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val max = audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
         val newVol = (initialVolume + (delta * max)).toInt().coerceIn(0, max)
@@ -282,7 +277,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun handleBrightnessGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
-        val delta = (-dy / screenH) * 2.5f // تحكم أفضل في الحساسية
+        val delta = (-dy / screenH) * 2.5f
         val newBrightness = (initialBrightness + delta).coerceIn(0f, 1f)
         val lp = window.attributes
         lp.screenBrightness = newBrightness
@@ -296,7 +291,7 @@ class PlayerActivity : AppCompatActivity() {
         val w = resources.displayMetrics.widthPixels
         val duration = player?.duration ?: 0L
         if (duration <= 0) return
-        val deltaMs = ((dx / w) * (duration * 0.15)).toLong() // تحكم أفضل في الحساسية
+        val deltaMs = ((dx / w) * (duration * 0.15)).toLong()
         val target = (initialPosition + deltaMs).coerceIn(0L, duration)
         player?.seekTo(target)
     }
@@ -345,9 +340,21 @@ class PlayerActivity : AppCompatActivity() {
             exo.setMediaItem(item)
             exo.playWhenReady = true
             exo.prepare()
+
+            // إضافة مُستمع (Listener) لتعديل حالة الشاشة
+            exo.addListener(object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    if (isPlaying) {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    } else {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
+                }
+            })
         }
         updatePlayIcon()
         handler.post(updateProgressRunnable)
+        showControls() // إظهار عناصر التحكم تلقائياً عند التشغيل
     }
 
     private fun releasePlayer() {
@@ -363,7 +370,9 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        handler.post(updateProgressRunnable)
+        if (player != null) {
+            handler.post(updateProgressRunnable)
+        }
     }
 
     override fun onPause() {
