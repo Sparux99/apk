@@ -12,6 +12,4 @@
     <string name="cd_skip_back">Skip back</string>
     <string name="cd_skip_forward">Skip forward</string>
     <string name="cd_speed">Playback speed</string>
-    <string name="cd_fullscreen">Fullscreen</string>
-    <string name="cd_lock">Lock controls</string>
 </resources>

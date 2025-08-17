@@ -3,23 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
     <!-- 1) فيديو (الطبقة الأسفل) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:use_controller="false"    <!-- important: disable built-in controller -->
+        app:use_controller="false"    
         app:show_shuffle_button="false"
         app:show_subtitle_button="false" />
-
     <!-- 2) overlay controls (شفافة وتجلس فوق الفيديو) -->
     <RelativeLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent">
-
         <!-- top translucent bar (seek + time) -->
         <LinearLayout
             android:id="@+id/top_bar"
@@ -27,9 +24,8 @@
             android:layout_height="48dp"
             android:orientation="horizontal"
             android:padding="8dp"
-            android:background="#66000000"   <!-- شبه شفاف -->
+            android:background="#66000000"   
             android:layout_alignParentTop="true">
-
             <TextView ... android:id="@+id/tv_position" />
             <SeekBar
                 android:id="@+id/seekBar"
@@ -39,7 +35,6 @@
                 android:progressTint="@color/accent" />
             <TextView ... android:id="@+id/tv_duration" />
         </LinearLayout>
-
         <!-- center big play/pause -->
         <ImageButton
             android:id="@+id/btn_play_pause"
@@ -48,7 +43,6 @@
             android:layout_centerInParent="true"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_play" />
-
         <!-- bottom small controls (skip back, speed, skip forward, fullscreen, lock) -->
         <LinearLayout
             android:id="@+id/bottom_bar"
@@ -59,7 +53,6 @@
             android:gravity="center"
             android:padding="8dp"
             android:background="#44000000">
-
             <ImageButton android:id="@+id/btn_skip_back" ... />
             <ImageButton android:id="@+id/btn_speed" ... />
             <ImageButton android:id="@+id/btn_skip_forward" ... />
