@@ -132,19 +132,24 @@ class PlayerActivity : AppCompatActivity() {
 
         // معالجة اللمسات والإيماءات
         playerView.setOnTouchListener { v, event ->
+            // منطق خاص عند قفل الشاشة
             if (isLocked) {
                 if (event.action == MotionEvent.ACTION_UP) {
+                    // عند النقر، فقط أظهر زر القفل ليتمكن المستخدم من إلغاء القفل
                     btnLock.isVisible = true
-                    btnLock.performClick()
-                    return@setOnTouchListener true
+                    // لا تتركه يختفي بعد فترة
+                    handler.removeCallbacks(hideControlsRunnable)
                 }
                 return@setOnTouchListener true
             }
 
+            // منطق الإيماءات الطبيعي
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    startX = event.x; startY = event.y
-                    isDragging = true; gestureMode = GestureMode.NONE
+                    startX = event.x
+                    startY = event.y
+                    isDragging = true
+                    gestureMode = GestureMode.NONE
                     initialVolume = getCurrentVolume()
                     initialBrightness = window.attributes.screenBrightness.let { if (it < 0f) 0.5f else it }
                     initialPosition = player?.currentPosition ?: 0L
@@ -320,11 +325,13 @@ class PlayerActivity : AppCompatActivity() {
         btnLock.setImageResource(if (resId != 0) resId else android.R.drawable.ic_menu_close_clear_cancel)
 
         if (isLocked) {
+            // عند القفل، أخفِ كل شيء ما عدا زر القفل نفسه
             overlay.visibility = View.GONE
             btnLock.isVisible = true
             btnFullscreen.isVisible = false
             seekBar.isEnabled = false
         } else {
+            // عند إلغاء القفل، أعد كل شيء إلى طبيعته
             overlay.visibility = View.VISIBLE
             btnFullscreen.isVisible = true
             seekBar.isEnabled = true
@@ -350,11 +357,17 @@ class PlayerActivity : AppCompatActivity() {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     }
                 }
+                // تحديث أيقونة التشغيل بمجرد جاهزية المشغل للتشغيل
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (playbackState == Player.STATE_READY && exo.playWhenReady) {
+                        updatePlayIcon()
+                    }
+                }
             })
         }
         updatePlayIcon()
         handler.post(updateProgressRunnable)
-        showControls() // إظهار عناصر التحكم تلقائياً عند التشغيل
+        showControls()
     }
 
     private fun releasePlayer() {
