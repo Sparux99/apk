@@ -1,79 +1,71 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- layout: res/layout/activity_player_custom.xml -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/black"
-    tools:context=".PlayerActivity">
+    android:layout_height="match_parent">
 
+    <!-- 1) فيديو (الطبقة الأسفل) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/controls_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:use_controller="false"    <!-- important: disable built-in controller -->
         app:show_shuffle_button="false"
         app:show_subtitle_button="false" />
 
-    <!-- simple controls container -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/controls_container"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <!-- 2) overlay controls (شفافة وتجلس فوق الفيديو) -->
+    <RelativeLayout
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent">
 
-        <SeekBar
-            android:id="@+id/seekBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="48dp"
-            android:progressTint="?attr/colorPrimary"
-            android:thumbTint="?attr/colorPrimary"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+        <!-- top translucent bar (seek + time) -->
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="#66000000"   <!-- شبه شفاف -->
+            android:layout_alignParentTop="true">
 
+            <TextView ... android:id="@+id/tv_position" />
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:progressTint="@color/accent" />
+            <TextView ... android:id="@+id/tv_duration" />
+        </LinearLayout>
+
+        <!-- center big play/pause -->
         <ImageButton
-            android:id="@+id/btn_fullscreen"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_fullscreen"
-            android:contentDescription="@string/cd_fullscreen"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:id="@+id/btn_play_pause"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_centerInParent="true"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_play" />
 
-        <ImageButton
-            android:id="@+id/btn_lock"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_lock_open"
-            android:contentDescription="@string/cd_lock"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+        <!-- bottom small controls (skip back, speed, skip forward, fullscreen, lock) -->
+        <LinearLayout
+            android:id="@+id/bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="#44000000">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- overlay text for feedback (volume/brightness/seek) -->
-    <TextView
-        android:id="@+id/tv_overlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="#80000000"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageButton android:id="@+id/btn_skip_back" ... />
+            <ImageButton android:id="@+id/btn_speed" ... />
+            <ImageButton android:id="@+id/btn_skip_forward" ... />
+            <View android:layout_weight="1" android:layout_width="0dp"/>
+            <ImageButton android:id="@+id/btn_fullscreen" ... />
+            <ImageButton android:id="@+id/btn_lock" ... />
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>
