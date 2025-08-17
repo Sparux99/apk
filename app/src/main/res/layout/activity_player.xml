@@ -55,7 +55,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_lock_open"          <!-- استعمال drawable محلي -->
+            android:src="@drawable/ic_lock_open"        
             android:contentDescription="@string/cd_lock"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
