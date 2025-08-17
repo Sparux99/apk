@@ -6,4 +6,7 @@
     <string name="permission_granted">تم منح كل الأذونات</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="cd_fullscreen">Toggle Fullscreen</string>
+    <string name="cd_lock">Lock/Unlock Controls</string>
+
 </resources>
