@@ -8,41 +8,54 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      # 1️⃣ استرجاع الكود
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2️⃣ إعداد JDK 17
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3️⃣ Cache لمجلدات Gradle لتسريع البناء
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      # 4️⃣ جعل Gradle Wrapper قابل للتنفيذ
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
 
-      # 5️⃣ Build Release APK نظيف ومضغوط
-      - name: Build Release APK (Clean + Minify + Shrink)
-        run: ./gradlew clean assembleRelease
+      - name: Show Gradle version
+        run: ./gradlew --version
 
-      # 6️⃣ رفع APK الناتج
-      - name: Upload Release APK
+      - name: Build Release APK (Clean + AssembleRelease)
+        run: ./gradlew clean assembleRelease --no-daemon
+
+      - name: List APK outputs (for debugging)
+        run: |
+          echo "---- files in app/build/outputs/apk ----"
+          ls -la app/build/outputs/apk || true
+          echo "---- files in app/build/outputs/apk/release ----"
+          ls -la app/build/outputs/apk/release || true
+          echo "---- files in app/build/outputs ----"
+          ls -la app/build/outputs || true
+
+      # Optional: sign the unsigned APK (uncomment & configure secrets to use)
+      # - name: Decode keystore (optional - to produce a signed release)
+      #   if: false
+      #   run: |
+      #     echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+      # - name: Align & Sign APK (optional - example)
+      #   if: false
+      #   run: |
+      #     # find unsigned apk (adjust name if different)
+      #     unsigned_apk=$(ls app/build/outputs/apk/release/*.apk | head -n1)
+      #     sdkmanager "build-tools;34.0.0" >/dev/null
+      #     $ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign -v -p 4 "$unsigned_apk" /tmp/app-aligned.apk
+      #     jarsigner -keystore release.keystore -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" /tmp/app-aligned.apk "$KEY_ALIAS"
+      #     # move signed apk to outputs
+      #     mkdir -p app/build/outputs/apk/release/signed
+      #     mv /tmp/app-aligned.apk app/build/outputs/apk/release/app-release-signed.apk
+
+      - name: Upload all APKs (glob)
         uses: actions/upload-artifact@v4
         with:
-          name: amine-player-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: amine-player-apks
+          path: |
+            app/build/outputs/**/*.apk
