@@ -59,7 +59,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_player_custom)
+        setContentView(R.layout.activity_player)
 
         playerView = findViewById(R.id.player_view)
         seekBar = findViewById(R.id.seekBar)
@@ -116,7 +116,7 @@ class PlayerActivity : AppCompatActivity() {
                             val half = v.width / 2
                             gestureMode = if (startX < half) GestureMode.BRIGHTNESS else GestureMode.VOLUME
                         }
-                    }
+                    } 
 
                     when (gestureMode) {
                         GestureMode.VOLUME -> handleVolumeGesture(dy)
@@ -203,13 +203,13 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun toggleLock() {
-        isLocked = !isLocked
-        btnLock.setImageResource(if (isLocked) android.R.drawable.ic_lock_lock else android.R.drawable.ic_lock_open)
-        // hide controls when locked
-        btnFullscreen.isVisible = !isLocked
-        btnLock.isVisible = true
-        seekBar.isEnabled = !isLocked
-    }
+    isLocked = !isLocked
+    btnLock.setImageResource(if (isLocked) R.drawable.ic_lock_closed else R.drawable.ic_lock_open)
+    btnFullscreen.isVisible = !isLocked
+    btnLock.isVisible = true
+    seekBar.isEnabled = !isLocked
+}
+
 
     private fun initializePlayer(uriString: String) {
         val uriToPlay = uriString ?: return

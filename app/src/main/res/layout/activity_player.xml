@@ -34,6 +34,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
+            android:progressTint="?attr/colorPrimary"   <!-- لون الشريط: يستخدم اللون الأساسي للتطبيق -->
+            android:thumbTint="?attr/colorPrimary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -43,7 +45,8 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_crop"
+            android:src="@drawable/ic_fullscreen"
+            android:contentDescription="@string/cd_fullscreen"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -52,7 +55,8 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_lock_open"
+            android:src="@drawable/ic_lock_open"          <!-- استعمال drawable محلي -->
+            android:contentDescription="@string/cd_lock"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
