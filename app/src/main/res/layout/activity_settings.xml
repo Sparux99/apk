@@ -46,4 +46,13 @@
         <RadioButton android:id="@+id/seek_15s" android:text="15 ثانية" />
     </RadioGroup>
 
+    <Switch
+    android:id="@+id/remember_position_switch"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="تذكر آخر موقع للمشغل"
+    android:textSize="16sp"
+    android:layout_marginTop="16dp"
+    android:padding="8dp" />
+
 </LinearLayout>

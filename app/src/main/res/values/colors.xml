@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Splash Background -->
-    <color name="splash_background_color">#121212</color> <!-- أسود مطفي أنيق -->
+    <color name="splash_background_color">#FFFFFF</color> <!-- أسود مطفي أنيق -->
 
     <!-- Purples -->
     <color name="purple_200">#9C27B0</color> <!-- بنفسجي عصري -->

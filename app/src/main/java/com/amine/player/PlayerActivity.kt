@@ -66,6 +66,7 @@ class PlayerActivity : AppCompatActivity() {
     private val autoHideDelay = 3000L
     private val textHideDelay = 1400L
     private val gestureUIHideDelay = 500L
+    private val lockButtonHideDelay = 1000L
 
     private val hideControlsRunnable = Runnable { overlay.visibility = View.GONE }
     private val hideOverlayTextRunnable = Runnable { tvOverlay.visibility = View.GONE }
@@ -73,6 +74,8 @@ class PlayerActivity : AppCompatActivity() {
         brightnessBar.visibility = View.GONE
         volumeBar.visibility = View.GONE
     }
+    // Runnable لإخفاء زر القفل
+    private val hideLockButtonRunnable = Runnable { btnLock.isVisible = false }
 
     private val updateProgressRunnable = object : Runnable {
         override fun run() {
@@ -95,7 +98,6 @@ class PlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
 
-        // ربط عناصر الواجهة بمتغيراتها
         playerView = findViewById(R.id.player_view)
         playerView.useController = false
         overlay = findViewById(R.id.overlay)
@@ -135,10 +137,10 @@ class PlayerActivity : AppCompatActivity() {
             // منطق خاص عند قفل الشاشة
             if (isLocked) {
                 if (event.action == MotionEvent.ACTION_UP) {
-                    // عند النقر، فقط أظهر زر القفل ليتمكن المستخدم من إلغاء القفل
+                    // عند النقر، فقط أظهر زر القفل، ثم أخفه بعد فترة
                     btnLock.isVisible = true
-                    // لا تتركه يختفي بعد فترة
-                    handler.removeCallbacks(hideControlsRunnable)
+                    handler.removeCallbacks(hideLockButtonRunnable)
+                    handler.postDelayed(hideLockButtonRunnable, autoHideDelay)
                 }
                 return@setOnTouchListener true
             }
@@ -151,7 +153,7 @@ class PlayerActivity : AppCompatActivity() {
                     isDragging = true
                     gestureMode = GestureMode.NONE
                     initialVolume = getCurrentVolume()
-                    initialBrightness = window.attributes.screenBrightness.let { if (it < 0f) 0.5f else it }
+                    initialBrightness = getInitialBrightness()
                     initialPosition = player?.currentPosition ?: 0L
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -206,6 +208,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun getInitialBrightness(): Float {
+        val brightness = window.attributes.screenBrightness
+        // إذا كانت القيمة أقل من 0 (تلقائي)، استخدم قيمة افتراضية
+        return if (brightness < 0) 0.5f else brightness
+    }
+    
     private fun formatTime(milliseconds: Long): String {
         val totalSeconds = milliseconds / 1000
         val minutes = totalSeconds / 60
@@ -215,6 +223,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun showControls() {
         handler.removeCallbacks(hideControlsRunnable)
+        // عند إظهار عناصر التحكم، تأكد من عدم وجود runnable لإخفاء زر القفل
+        handler.removeCallbacks(hideLockButtonRunnable)
         overlay.visibility = View.VISIBLE
         handler.postDelayed(hideControlsRunnable, autoHideDelay)
     }
@@ -283,6 +293,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun handleBrightnessGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
         val delta = (-dy / screenH) * 2.5f
+        // حساب الإضاءة الجديدة من القيمة الحالية
         val newBrightness = (initialBrightness + delta).coerceIn(0f, 1f)
         val lp = window.attributes
         lp.screenBrightness = newBrightness
@@ -312,9 +323,11 @@ class PlayerActivity : AppCompatActivity() {
         if (isFullscreen) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            btnFullscreen.setImageResource(R.drawable.ic_fullscreen_exit)
         } else {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            btnFullscreen.setImageResource(R.drawable.ic_fullscreen)
         }
     }
 
@@ -325,18 +338,16 @@ class PlayerActivity : AppCompatActivity() {
         btnLock.setImageResource(if (resId != 0) resId else android.R.drawable.ic_menu_close_clear_cancel)
 
         if (isLocked) {
-            // عند القفل، أخفِ كل شيء ما عدا زر القفل نفسه
-            overlay.visibility = View.GONE
-            btnLock.isVisible = true
-            btnFullscreen.isVisible = false
-            seekBar.isEnabled = false
+            // عند القفل، أخفِ كل شيء بما في ذلك زر القفل بعد فترة
+            hideControls()
+            btnLock.isVisible = true // أظهر الزر مؤقتاً
+            handler.postDelayed(hideLockButtonRunnable, lockButtonHideDelay) // ثم أخفه
         } else {
             // عند إلغاء القفل، أعد كل شيء إلى طبيعته
-            overlay.visibility = View.VISIBLE
-            btnFullscreen.isVisible = true
-            seekBar.isEnabled = true
             showControls()
         }
+        btnFullscreen.isVisible = !isLocked
+        seekBar.isEnabled = !isLocked
     }
 
     private fun initializePlayer(uriString: String?) {
@@ -348,7 +359,6 @@ class PlayerActivity : AppCompatActivity() {
             exo.playWhenReady = true
             exo.prepare()
 
-            // إضافة مُستمع (Listener) لتعديل حالة الشاشة
             exo.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     if (isPlaying) {
@@ -357,7 +367,6 @@ class PlayerActivity : AppCompatActivity() {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     }
                 }
-                // تحديث أيقونة التشغيل بمجرد جاهزية المشغل للتشغيل
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_READY && exo.playWhenReady) {
                         updatePlayIcon()
