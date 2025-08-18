@@ -20,4 +20,6 @@
     <color name="teal_700">#00796B</color>
 
     <!-- legacy purple used as default in styles -->
-    <color name
+    <color name="purple_500">#7B1FA2</color>
+    <color name="purple_700">#4A148C</color>
+</resources>
