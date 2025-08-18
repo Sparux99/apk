@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Base app theme -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        Unified themes file.
+        - Theme_Amine is the canonical (recommended) theme name used in code going forward.
+        - Theme.Amine is provided as a compatibility alias so existing references keep working.
+        Replace the project's themes.xml with this file (or merge its contents).
+    -->
+
+    <!-- Base app theme - canonical name -->
     <style name="Theme_Amine" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -9,7 +17,10 @@
         <item name="colorOnSecondary">@color/black</item>
     </style>
 
-    <!-- Derived themes (names used in code: R.style.Theme_Amine_Blue etc.) -->
+    <!-- Backwards-compat alias: any code/XML still referencing "Theme.Amine" will inherit Theme_Amine -->
+    <style name="Theme.Amine" parent="Theme_Amine" tools:ignore="UnusedAttribute" />
+
+    <!-- Derived themes (used by Settings etc.) -->
     <style name="Theme_Amine_Blue" parent="Theme_Amine">
         <item name="colorPrimary">@color/blue_primary</item>
         <item name="colorPrimaryVariant">@color/blue_primary</item>
@@ -44,4 +55,5 @@
         <item name="colorPrimary">@color/pink_primary</item>
         <item name="colorPrimaryVariant">@color/pink_primary</item>
     </style>
+
 </resources>
