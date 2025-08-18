@@ -5,20 +5,18 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background_color</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash</item>
-        <item name="postSplashScreenTheme">@style/Theme_Amine</item>
+        <item name="postSplashScreenTheme">@style/Theme.Amine</item>
     </style>
 
-    <!-- Canonical app theme -->
-    <style name="Theme_Aminep" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- الثيم الرئيسي للتطبيق -->
+    <style name="Theme.Amine" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
     </style>
-
-    <!-- Backwards-compat alias -->
-    <style name="Theme.Amines" parent="Theme_Amine" tools:ignore="UnusedAttribute" />
 
     <!-- Player Theme (Fullscreen, NoActionBar) -->
     <style name="Theme.Amine.Player" parent="Theme.Material3.DayNight">
@@ -29,37 +27,37 @@
     </style>
 
     <!-- Derived color themes -->
-    <style name="Theme_Amine_Blue" parent="Theme_Amine">
+    <style name="Theme.Amine.Blue" parent="Theme.Amine">
         <item name="colorPrimary">@color/blue_primary</item>
         <item name="colorPrimaryVariant">@color/blue_primary</item>
     </style>
 
-    <style name="Theme_Amine_Green" parent="Theme_Amine">
+    <style name="Theme.Amine.Green" parent="Theme.Amine">
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorPrimaryVariant">@color/green_primary</item>
     </style>
 
-    <style name="Theme_Amine_Purple" parent="Theme_Amine">
+    <style name="Theme.Amine.Purple" parent="Theme.Amine">
         <item name="colorPrimary">@color/purple_primary</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
     </style>
 
-    <style name="Theme_Amine_Red" parent="Theme_Amine">
+    <style name="Theme.Amine.Red" parent="Theme.Amine">
         <item name="colorPrimary">@color/red_primary</item>
         <item name="colorPrimaryVariant">@color/red_primary</item>
     </style>
 
-    <style name="Theme_Amine_Orange" parent="Theme_Amine">
+    <style name="Theme.Amine.Orange" parent="Theme.Amine">
         <item name="colorPrimary">@color/orange_primary</item>
         <item name="colorPrimaryVariant">@color/orange_primary</item>
     </style>
 
-    <style name="Theme_Amine_Teal" parent="Theme_Amine">
+    <style name="Theme.Amine.Teal" parent="Theme.Amine">
         <item name="colorPrimary">@color/teal_primary</item>
         <item name="colorPrimaryVariant">@color/teal_primary</item>
     </style>
 
-    <style name="Theme_Amine_Pink" parent="Theme_Amine">
+    <style name="Theme.Amine.Pink" parent="Theme.Amine">
         <item name="colorPrimary">@color/pink_primary</item>
         <item name="colorPrimaryVariant">@color/pink_primary</item>
     </style>
