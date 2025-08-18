@@ -1,8 +1,8 @@
 package com.amine.player
 
 import android.Manifest
-import android.content.Context
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.MenuItem
 import android.view.View
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -23,22 +22,25 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
+import com.amine.player.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// 1. جعل الـ Activity "تستمع" لنقرات القائمة
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var videosRecyclerView: RecyclerView
-    private lateinit var loadingIndicator: ProgressBar
+    private lateinit var binding: ActivityMainBinding
     private lateinit var videoAdapter: VideoAdapter
-
-    // Navigation Drawer components
-    private lateinit var drawerLayout: DrawerLayout
-    private lateinit var navigationView: NavigationView
     private lateinit var toggle: ActionBarDrawerToggle
+
+    // Launcher لفتح شاشة الإعدادات واستقبال نتيجة لتحديث الثيم إذا احتاج الأمر
+    private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // إعادة إنشاء الـ Activity لتطبيق الثيم الجديد
+            recreate()
+        }
+    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -50,39 +52,37 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // تطبيق الثيم المختار مسبقاً قبل أي شيء
         val prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
         val themeId = prefs.getInt("AppTheme", R.style.Theme_Amine)
         setTheme(themeId)
 
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        // ViewBinding inflate
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Toolbar
+        setSupportActionBar(binding.toolbar)
 
         // RecyclerView + ProgressBar
-        videosRecyclerView = findViewById(R.id.videos_recycler_view)
-        loadingIndicator = findViewById(R.id.loading_indicator)
-        videosRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.videosRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // Drawer setup
-        drawerLayout = findViewById(R.id.drawer_layout)
-        navigationView = findViewById(R.id.nav_view) // تأكد من أن الـ ID هو nav_view كما في ملف الـ XML
         toggle = ActionBarDrawerToggle(
-            this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+            this, binding.drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
-        drawerLayout.addDrawerListener(toggle)
+        binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        // 2. تعيين المستمع ليكون هذه الـ Activity نفسها
-        navigationView.setNavigationItemSelectedListener(this)
+        binding.navView.setNavigationItemSelectedListener(this)
 
         checkPermissionAndLoadVideos()
     }
 
-    // هذه الدالة ضرورية لعمل زر "الهمبرغر" في شريط العنوان
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {
             return true
@@ -90,29 +90,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return super.onOptionsItemSelected(item)
     }
 
-    // 3. الدالة الجديدة التي تتعامل مع جميع نقرات عناصر القائمة
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            // تأكد من أن هذا الـ ID يطابق ما وضعته في ملف nav_menu.xml
             R.id.nav_dark_mode -> {
-                // الكود الخاص بتبديل الوضع المظلم
                 val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                 } else {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                 }
-                // إعادة إنشاء الواجهة لتطبيق التغيير فوراً
                 recreate()
             }
             R.id.nav_settings -> {
-                Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, SettingsActivity::class.java))
+                val intent = Intent(this, SettingsActivity::class.java)
+                settingsLauncher.launch(intent)
             }
-            // أضف أي عناصر أخرى هنا
         }
-        // إغلاق القائمة بعد الاختيار
-        drawerLayout.closeDrawers()
+        binding.drawerLayout.closeDrawers()
         return true
     }
 
@@ -134,19 +128,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun loadVideos() {
-        loadingIndicator.visibility = View.VISIBLE
+        binding.loadingIndicator.visibility = View.VISIBLE
 
         GlobalScope.launch(Dispatchers.IO) {
             val videoList = fetchVideosFromDevice()
             withContext(Dispatchers.Main) {
-                loadingIndicator.visibility = View.GONE
+                binding.loadingIndicator.visibility = View.GONE
                 videoAdapter = VideoAdapter(videoList) { video ->
                     val intent = Intent(this@MainActivity, PlayerActivity::class.java).apply {
                         data = video.contentUri
                     }
                     startActivity(intent)
                 }
-                videosRecyclerView.adapter = videoAdapter
+                binding.videosRecyclerView.adapter = videoAdapter
             }
         }
     }

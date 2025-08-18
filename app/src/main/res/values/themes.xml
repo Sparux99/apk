@@ -1,28 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/splash_background_color</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash</item>
-        <item name="postSplashScreenTheme">@style/Theme.Amine</item>
+    <!-- Base app theme -->
+    <style name="Theme_Amine" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
     </style>
 
-    <!-- ▼▼▼ RENAMED FROM Theme.MyPlayer TO Theme.Amine ▼▼▼ -->
-    <style name="Theme.Aminep" parent="Theme.Material3.DayNight">
-    </style>
-
-    <!-- ▼▼▼ RENAMED FROM Theme.MyPlayer.Player TO Theme.Amine.Player ▼▼▼ -->
-    <style name="Theme.Amine.Player" parent="Theme.Material3.DayNight">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-    </style>
-
-    <style name="Theme.Amine.Blue" parent="Theme.Amine">
+    <!-- Derived themes (names used in code: R.style.Theme_Amine_Blue etc.) -->
+    <style name="Theme_Amine_Blue" parent="Theme_Amine">
         <item name="colorPrimary">@color/blue_primary</item>
+        <item name="colorPrimaryVariant">@color/blue_primary</item>
     </style>
 
-    <style name="Theme.Amine.Green" parent="Theme.Amine">
+    <style name="Theme_Amine_Green" parent="Theme_Amine">
         <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_primary</item>
+    </style>
+
+    <style name="Theme_Amine_Purple" parent="Theme_Amine">
+        <item name="colorPrimary">@color/purple_primary</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+    </style>
+
+    <style name="Theme_Amine_Red" parent="Theme_Amine">
+        <item name="colorPrimary">@color/red_primary</item>
+        <item name="colorPrimaryVariant">@color/red_primary</item>
+    </style>
+
+    <style name="Theme_Amine_Orange" parent="Theme_Amine">
+        <item name="colorPrimary">@color/orange_primary</item>
+        <item name="colorPrimaryVariant">@color/orange_primary</item>
+    </style>
+
+    <style name="Theme_Amine_Teal" parent="Theme_Amine">
+        <item name="colorPrimary">@color/teal_primary</item>
+        <item name="colorPrimaryVariant">@color/teal_primary</item>
+    </style>
+
+    <style name="Theme_Amine_Pink" parent="Theme_Amine">
+        <item name="colorPrimary">@color/pink_primary</item>
+        <item name="colorPrimaryVariant">@color/pink_primary</item>
     </style>
 </resources>

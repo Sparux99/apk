@@ -3,40 +3,46 @@ package com.amine.player
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.RadioGroup
-import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
+import com.amine.player.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
 
-    // SharedPreferences لتخزين الإعدادات
     private lateinit var prefs: SharedPreferences
+    private lateinit var binding: ActivitySettingsBinding
+    private var themeChanged = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // خذ الإعدادات أولاً حتى نطبق الثيم قبل إنشاء الـ Activity
+        prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
+        val currentTheme = getAppTheme()
+        setTheme(currentTheme)
+
         super.onCreate(savedInstanceState)
-        // قم بتطبيق الثيم المختار قبل عرض الواجهة
-        setTheme(getAppTheme())
-        setContentView(R.layout.activity_settings)
-        // تفعيل زر العودة في شريط التطبيق
+
+        // ViewBinding inflate
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         title = "الإعدادات"
 
-        // الحصول على SharedPreferences لتخزين واسترجاع الإعدادات
-        prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-
-        // إعداد جميع أقسام الإعدادات
         setupColorSelection()
         setupSeekTimeSelection()
         setupRememberPositionSwitch()
     }
 
-    // إعداد خيارات اختيار ألوان الواجهة
     private fun setupColorSelection() {
-        val colorRadioGroup = findViewById<RadioGroup>(R.id.color_radio_group)
+        val colorRadioGroup = binding.colorRadioGroup
         val currentTheme = prefs.getInt("AppTheme", R.style.Theme_Amine)
+
         when (currentTheme) {
             R.style.Theme_Amine_Blue -> colorRadioGroup.check(R.id.color_blue)
             R.style.Theme_Amine_Green -> colorRadioGroup.check(R.id.color_green)
+            R.style.Theme_Amine_Red -> colorRadioGroup.check(R.id.color_red)
+            R.style.Theme_Amine_Orange -> colorRadioGroup.check(R.id.color_orange)
+            R.style.Theme_Amine_Teal -> colorRadioGroup.check(R.id.color_teal)
+            R.style.Theme_Amine_Pink -> colorRadioGroup.check(R.id.color_pink)
             else -> colorRadioGroup.check(R.id.color_default)
         }
 
@@ -44,18 +50,25 @@ class SettingsActivity : AppCompatActivity() {
             val themeId = when (checkedId) {
                 R.id.color_blue -> R.style.Theme_Amine_Blue
                 R.id.color_green -> R.style.Theme_Amine_Green
+                R.id.color_red -> R.style.Theme_Amine_Red
+                R.id.color_orange -> R.style.Theme_Amine_Orange
+                R.id.color_teal -> R.style.Theme_Amine_Teal
+                R.id.color_pink -> R.style.Theme_Amine_Pink
                 else -> R.style.Theme_Amine
             }
-            // حفظ الثيم المختار وإعادة إنشاء النشاط لتطبيقه
-            prefs.edit().putInt("AppTheme", themeId).apply()
-            recreate()
+
+            val old = prefs.getInt("AppTheme", R.style.Theme_Amine)
+            if (old != themeId) {
+                prefs.edit().putInt("AppTheme", themeId).apply()
+                themeChanged = true
+                setResult(RESULT_OK) // إعلام MainActivity بوجود تغيير لتهيئة الثيم عند العودة
+            }
+            // لا نقوم بـ recreate() هنا لتجنب وميض الـ RadioButtons
         }
     }
 
-    // إعداد خيارات التحكم في وقت التقديم والتأخير
     private fun setupSeekTimeSelection() {
-        val seekRadioGroup = findViewById<RadioGroup>(R.id.seek_time_radio_group)
-        // الحصول على وقت التخطي الحالي، والقيمة الافتراضية 10 ثوانٍ (10000ms)
+        val seekRadioGroup = binding.seekTimeRadioGroup
         val currentSeekTime = prefs.getInt("SeekTime", 10000)
         when (currentSeekTime) {
             5000 -> seekRadioGroup.check(R.id.seek_5s)
@@ -69,33 +82,31 @@ class SettingsActivity : AppCompatActivity() {
                 R.id.seek_15s -> 15000
                 else -> 10000
             }
-            // حفظ وقت التخطي المختار
             prefs.edit().putInt("SeekTime", seekTime).apply()
         }
     }
 
-    // إعداد مفتاح التبديل لتذكر آخر موقع
     private fun setupRememberPositionSwitch() {
-        val rememberPositionSwitch = findViewById<Switch>(R.id.remember_position_switch)
-        // الحصول على حالة الخيار، والقيمة الافتراضية true (مفعل)
+        val rememberSwitch = binding.rememberPositionSwitch
         val isRememberEnabled = prefs.getBoolean("RememberPosition", true)
-        rememberPositionSwitch.isChecked = isRememberEnabled
+        rememberSwitch.isChecked = isRememberEnabled
 
-        rememberPositionSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // حفظ حالة الخيار الجديدة
+        rememberSwitch.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("RememberPosition", isChecked).apply()
         }
     }
 
-    // دالة للحصول على الثيم من SharedPreferences
     private fun getAppTheme(): Int {
-        return getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-            .getInt("AppTheme", R.style.Theme_Amine)
+        return prefs.getInt("AppTheme", R.style.Theme_Amine)
     }
 
-    // التحكم في زر العودة في شريط التطبيق
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
+        finish()
         return true
+    }
+
+    override fun onBackPressed() {
+        if (themeChanged) setResult(RESULT_OK) else setResult(RESULT_CANCELED)
+        super.onBackPressed()
     }
 }

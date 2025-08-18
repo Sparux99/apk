@@ -1,28 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Splash Background -->
-    <color name="splash_background_color">#FFFFFF</color> <!-- أسود مطفي أنيق -->
+    <!-- Splash / basic -->
+    <color name="splash_background_color">#FFFFFF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 
-    <!-- Purples -->
-    <color name="purple_200">#9C27B0</color> <!-- بنفسجي عصري -->
-    <color name="purple_500">#7B1FA2</color>
-    <color name="purple_700">#4A148C</color>
+    <!-- 7 Primary palette -->
+    <color name="purple_primary">#7B1FA2</color>
+    <color name="blue_primary">#1E88E5</color>
+    <color name="green_primary">#43A047</color>
+    <color name="red_primary">#E53935</color>
+    <color name="orange_primary">#FB8C00</color>
+    <color name="teal_primary">#009688</color>
+    <color name="pink_primary">#D81B60</color>
 
-    <!-- Teals -->
-    <color name="teal_200">#80CBC4</color> <!-- فيروزي فاتح -->
+    <!-- accents / helpers -->
+    <color name="accent">#FFB300</color>
+    <color name="teal_200">#80CBC4</color>
     <color name="teal_700">#00796B</color>
 
-    <!-- Basics -->
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFF</color>
-
-    <!-- Primaries -->
-    <color name="blue_primary">#1E88E5</color> <!-- أزرق احترافي للفيديو -->
-    <color name="green_primary">#43A047</color> <!-- أخضر هادئ للتأكيد -->
-
-    <!-- Theme -->
-    <color name="colorPrimary">#1E88E5</color> <!-- نفس الأزرق -->
-    <color name="colorOnPrimary">#FFFFFF</color> <!-- كتابات بيضاء -->
-    <color name="accent">#FFB300</color> <!-- أصفر/برتقالي للأزرار البارزة -->
-</resources>
-
+    <!-- legacy purple used as default in styles -->
+    <color name
