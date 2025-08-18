@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.amine.player.databinding.ActivitySettingsBinding
+import android.widget.Button
+import android.content.Intent
 
 class SettingsActivity : AppCompatActivity() {
 

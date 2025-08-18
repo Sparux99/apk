@@ -556,10 +556,6 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
-                    if (playbackState == Player.STATE_READY) updatePlayIcon()
-                }
-
-                override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_ENDED) {
                         // إعادة تعيين الموضع
                         initialPosition = 0L
