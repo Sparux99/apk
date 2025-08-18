@@ -9,7 +9,7 @@
     </style>
 
     <!-- Canonical app theme -->
-    <style name="Theme_Amine" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme_Aminep" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -18,7 +18,7 @@
     </style>
 
     <!-- Backwards-compat alias -->
-    <style name="Theme.Amine" parent="Theme_Amine" tools:ignore="UnusedAttribute" />
+    <style name="Theme.Amines" parent="Theme_Amine" tools:ignore="UnusedAttribute" />
 
     <!-- Player Theme (Fullscreen, NoActionBar) -->
     <style name="Theme.Amine.Player" parent="Theme.Material3.DayNight">
