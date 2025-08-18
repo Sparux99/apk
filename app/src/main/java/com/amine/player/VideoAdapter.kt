@@ -12,7 +12,7 @@ import java.util.Date
 import java.util.Locale
 
 class VideoAdapter(
-    public var videos: List<Video>,
+    var videos: List<Video>,
     private val onVideoClick: (Video) -> Unit
 ) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
 
@@ -35,15 +35,20 @@ class VideoAdapter(
         private val dateAdded: TextView = itemView.findViewById(R.id.video_date_added)
 
         fun bind(video: Video) {
-            title.text = video.title.substringBeforeLast('.')
+            title.text = video.title.substringBeforeLast('.').ifEmpty { "Unknown" }
 
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-            dateAdded.text = sdf.format(Date(video.dateAdded * 1000))
+            val date = if (video.dateAdded > 0) Date(video.dateAdded * 1000) else Date()
+            dateAdded.text = sdf.format(date)
 
-            Glide.with(itemView.context)
-                .load(video.contentUri)
-                .centerCrop()
-                .into(thumbnail)
+            try {
+                Glide.with(itemView.context)
+                    .load(video.contentUri)
+                    .centerCrop()
+                    .into(thumbnail)
+            } catch (e: Exception) {
+                thumbnail.setImageResource(R.drawable.ic_video_placeholder)
+            }
         }
     }
 
