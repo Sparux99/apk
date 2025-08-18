@@ -17,7 +17,8 @@ class VideoAdapter(
 ) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.video_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.video_item, parent, false)
         return VideoViewHolder(view)
     }
 
@@ -35,20 +36,15 @@ class VideoAdapter(
         private val dateAdded: TextView = itemView.findViewById(R.id.video_date_added)
 
         fun bind(video: Video) {
-            title.text = video.title.substringBeforeLast('.').ifEmpty { "Unknown" }
+            title.text = video.title.substringBeforeLast('.')
+            dateAdded.text = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                .format(Date(video.dateAdded * 1000))
 
-            val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-            val date = if (video.dateAdded > 0) Date(video.dateAdded * 1000) else Date()
-            dateAdded.text = sdf.format(date)
-
-            try {
-                Glide.with(itemView.context)
-                    .load(video.contentUri)
-                    .centerCrop()
-                    .into(thumbnail)
-            } catch (e: Exception) {
-                thumbnail.setImageResource(R.drawable.ic_video_placeholder)
-            }
+            Glide.with(itemView.context)
+                .load(video.contentUri)
+                .centerCrop()
+                .placeholder(R.drawable.ic_video_placeholder) // تأكد من وجود هذا drawable
+                .into(thumbnail)
         }
     }
 
