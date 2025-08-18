@@ -51,7 +51,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            recreate()  // ✅ يعيد بناء MainActivity بالثيم الجديد
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(ThemeHelper.getSavedTheme(this)) // قبل super أو على الأقل قبل setContentView
+        setContentView(R.layout.activity_main)
         // تطبيق الثيم المختار مسبقاً قبل أي شيء
         val prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
         val themeId = prefs.getInt("AppTheme", R.style.Theme_Amine)
@@ -103,6 +113,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             R.id.nav_settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
+                startActivityForResult(intent, 100)  // أي رقم requestCode
                 settingsLauncher.launch(intent)
             }
         }

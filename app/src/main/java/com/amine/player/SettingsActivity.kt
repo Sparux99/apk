@@ -3,7 +3,7 @@ package com.amine.player
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.MenuItem // هذا هو السطر المفقود
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.amine.player.databinding.ActivitySettingsBinding
 
@@ -14,9 +14,9 @@ class SettingsActivity : AppCompatActivity() {
     private var themeChanged = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 1) طبّق الثيم المحفوظ قبل setContentView
         prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val currentTheme = getAppTheme()
-        setTheme(currentTheme)
+        setTheme(ThemeHelper.getSavedTheme(this))
 
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -60,24 +60,26 @@ class SettingsActivity : AppCompatActivity() {
                 prefs.edit().putInt("AppTheme", themeId).apply()
                 themeChanged = true
                 setResult(RESULT_OK)
+                // إعادة رسم شاشة الإعدادات نفسها لعرض اللون الجديد فوراً:
+                recreate()
             }
         }
     }
 
     private fun setupSeekTimeSelection() {
         val seekRadioGroup = binding.seekTimeRadioGroup
-        val currentSeekTime = prefs.getInt("SeekTime", 10000)
+        val currentSeekTime = prefs.getInt("SeekTime", 10_000)
         when (currentSeekTime) {
-            5000 -> seekRadioGroup.check(R.id.seek_5s)
-            15000 -> seekRadioGroup.check(R.id.seek_15s)
+            5_000 -> seekRadioGroup.check(R.id.seek_5s)
+            15_000 -> seekRadioGroup.check(R.id.seek_15s)
             else -> seekRadioGroup.check(R.id.seek_10s)
         }
 
         seekRadioGroup.setOnCheckedChangeListener { _, checkedId ->
             val seekTime = when (checkedId) {
-                R.id.seek_5s -> 5000
-                R.id.seek_15s -> 15000
-                else -> 10000
+                R.id.seek_5s -> 5_000
+                R.id.seek_15s -> 15_000
+                else -> 10_000
             }
             prefs.edit().putInt("SeekTime", seekTime).apply()
         }
@@ -91,10 +93,6 @@ class SettingsActivity : AppCompatActivity() {
         rememberSwitch.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("RememberPosition", isChecked).apply()
         }
-    }
-
-    private fun getAppTheme(): Int {
-        return prefs.getInt("AppTheme", R.style.Theme_Amine)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

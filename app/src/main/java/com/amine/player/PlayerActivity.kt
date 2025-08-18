@@ -5,7 +5,7 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.MenuItem
+import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -76,21 +76,27 @@ class PlayerActivity : AppCompatActivity() {
 
     // ---------- Handler & delays ----------
     private val handler = Handler(Looper.getMainLooper())
-    private val autoHideDelay = 3000L      
-    private val textHideDelay = 1400L      
-    private val gestureUIHideDelay = 500L  
-    private val lockButtonHideDelay = 1000L
+    private val autoHideDelay = 3000L      // إخفاء عناصر التحكم تلقائياً
+    private val textHideDelay = 1400L      // إخفاء نصّ الـ overlay
+    private val gestureUIHideDelay = 500L  // إخفاء شريط الصوت/السطوع بعد التمرير
+    private val lockButtonHideDelay = 1000L// إخفاء زر القفل بعد ظهوره مؤقتًا
 
+    // إخفاءات
     private val hideControlsRunnable = Runnable { overlay.visibility = View.GONE }
     private val hideOverlayTextRunnable = Runnable { tvOverlay.visibility = View.GONE }
     private val hideGestureUIRunnable = Runnable {
         brightnessBar.visibility = View.GONE
         volumeBar.visibility = View.GONE
     }
+    // مهم: عند انتهاء المهلة، اخف الزر وحوّل الحالة إلى HIDDEN
     private val hideLockButtonRunnable = Runnable {
-        if (lockState != LockState.UNLOCKED) btnLock.isVisible = false
+        if (lockState == LockState.LOCKED_VISIBLE) {
+            lockState = LockState.LOCKED_HIDDEN
+            applyState()
+        }
     }
 
+    // تحديث التقدّم الدوري
     private val updateProgressRunnable = object : Runnable {
         override fun run() {
             val p = player
@@ -110,6 +116,7 @@ class PlayerActivity : AppCompatActivity() {
 
     // ------------------ Lifecycle ------------------
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(ThemeHelper.getSavedTheme(this))  
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
 
@@ -148,7 +155,7 @@ class PlayerActivity : AppCompatActivity() {
                 initialPosition = 0L
             }
         }
-        
+
         // ---------- أزرار التحكم ----------
         btnFullscreen.setOnClickListener { toggleFullscreen(); showControls() }
         btnLock.setOnClickListener {
@@ -173,19 +180,19 @@ class PlayerActivity : AppCompatActivity() {
 
         // ---------- لمسات / إيماءات على PlayerView ----------
         playerView.setOnTouchListener { v, event ->
+            // إذا الشاشة مقفلة، امتصّ اللمسات واظهر زر القفل مؤقتًا
             if (lockState != LockState.UNLOCKED) {
                 if (event.action == MotionEvent.ACTION_UP) {
-                    if (lockState == LockState.LOCKED_HIDDEN) {
-                        lockState = LockState.LOCKED_VISIBLE
-                    }
+                    lockState = LockState.LOCKED_VISIBLE
+                    applyState()                // يجعل overlay مرئيًا مع إخفاء الأشرطة
                     btnLock.isVisible = true
                     handler.removeCallbacks(hideLockButtonRunnable)
                     handler.postDelayed(hideLockButtonRunnable, lockButtonHideDelay)
                 }
-                applyState()
                 return@setOnTouchListener true
             }
 
+            // إذا غير مقفل، نفذ منطق الإيماءات الطبيعي
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     startX = event.x
@@ -245,6 +252,7 @@ class PlayerActivity : AppCompatActivity() {
             }
             true
         }
+
         applyState()
         if (lockState == LockState.LOCKED_VISIBLE) {
             handler.postDelayed(hideLockButtonRunnable, lockButtonHideDelay)
@@ -272,7 +280,8 @@ class PlayerActivity : AppCompatActivity() {
                 enableImmersive(false)
             }
             LockState.LOCKED_VISIBLE -> {
-                overlay.visibility = View.GONE
+                // مهم: اترك overlay مرئيًا حتى تظهر أيقونة القفل
+                overlay.visibility = View.VISIBLE
                 bottomBar.isVisible = false
                 topBar.isVisible = false
                 seekBar.isEnabled = false
@@ -282,6 +291,7 @@ class PlayerActivity : AppCompatActivity() {
                 enableImmersive(true)
             }
             LockState.LOCKED_HIDDEN -> {
+                // في الوضع المخفي، overlay مخفي بالكامل
                 overlay.visibility = View.GONE
                 bottomBar.isVisible = false
                 topBar.isVisible = false
@@ -317,6 +327,7 @@ class PlayerActivity : AppCompatActivity() {
         handler.postDelayed(hideOverlayTextRunnable, textHideDelay)
     }
 
+    // ------------------ Playback controls ------------------
     private fun togglePlayPause() {
         player?.let { p ->
             if (p.isPlaying) p.pause() else p.play()
@@ -350,6 +361,7 @@ class PlayerActivity : AppCompatActivity() {
         popup.show()
     }
 
+    // ------------------ Gesture handlers ------------------
     private fun handleVolumeGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
         val delta = (-dy / screenH) * 2.5f
@@ -378,7 +390,9 @@ class PlayerActivity : AppCompatActivity() {
         val w = resources.displayMetrics.widthPixels
         val duration = player?.duration ?: 0L
         if (duration <= 0) return
-        val deltaMs = ((dx / w) * (duration * 0.15)).toLong()
+        // تحسين الحساسية: اختر الأكبر بين 25% من المدة و 20 ثانية
+        val maxSeekMs = max((duration * 0.25f).toLong(), 20_000L)
+        val deltaMs = ((dx / w) * maxSeekMs).toLong()
         val target = (initialSeekPosition + deltaMs).coerceIn(0L, duration)
         player?.seekTo(target)
     }
@@ -389,10 +403,19 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun getInitialBrightness(): Float {
-        val brightness = window.attributes.screenBrightness
-        return if (brightness < 0) 0.5f else brightness
+        val attrValue = window.attributes.screenBrightness
+        if (attrValue >= 0f) return attrValue
+        // attrValue == -1 => اتبع سطوع النظام: نقرأه و نحوله إلى مدى 0..1
+        return try {
+            val sys = Settings.System.getInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS) // 0..255 (أحيانًا أعلى)
+            val maxSys = 255f
+            (sys / maxSys).coerceIn(0f, 1f)
+        } catch (_: Exception) {
+            0.5f // قيمة احتياطية
+        }
     }
 
+    // ------------------ Fullscreen & Immersive ------------------
     private fun toggleFullscreen() {
         isFullscreen = !isFullscreen
         requestedOrientation = if (isFullscreen) {
@@ -423,6 +446,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // ------------------ Lock state transitions ------------------
     private fun enterLock() {
         lockState = LockState.LOCKED_VISIBLE
         applyState()
@@ -438,7 +462,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setGesturesEnabled(enabled: Boolean) {
-        playerView.isClickable = enabled
+        // لضمان استقبال اللمسات حتى في وضع القفل، اجعل clickable دائمًا true
+        playerView.isClickable = true
         playerView.isFocusable = enabled
     }
 
@@ -474,10 +499,16 @@ class PlayerActivity : AppCompatActivity() {
             editor.putLong("lastPosition_$videoId", player?.currentPosition ?: 0L)
             editor.apply()
         }
-        initialPosition = player?.currentPosition ?: 0L
+        initialPosition = player?.currentPosition ?: initialPosition
         releasePlayer()
     }
-    
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("lockState", lockState.name)
+        outState.putLong("position", player?.currentPosition ?: initialPosition)
+    }
+
     private fun initializePlayer(uriString: String?) {
         val uriToPlay = uriString ?: return
         if (player != null) return
@@ -485,10 +516,11 @@ class PlayerActivity : AppCompatActivity() {
         player = ExoPlayer.Builder(this).build().also { exo ->
             playerView.player = exo
             val item = MediaItem.fromUri(uriToPlay)
-            exo.setMediaItem(item)
-            exo.playWhenReady = true
+
+            // النقطة الحاسمة لمنع البدء من البداية:
+            exo.setMediaItem(item, initialPosition)
             exo.prepare()
-            exo.seekTo(initialPosition) 
+            exo.playWhenReady = true
 
             exo.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
