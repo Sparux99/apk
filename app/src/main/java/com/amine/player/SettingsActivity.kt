@@ -3,6 +3,7 @@ package com.amine.player
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.MenuItem // هذا هو السطر المفقود
 import androidx.appcompat.app.AppCompatActivity
 import com.amine.player.databinding.ActivitySettingsBinding
 
@@ -13,14 +14,11 @@ class SettingsActivity : AppCompatActivity() {
     private var themeChanged = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // خذ الإعدادات أولاً حتى نطبق الثيم قبل إنشاء الـ Activity
         prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
         val currentTheme = getAppTheme()
         setTheme(currentTheme)
 
         super.onCreate(savedInstanceState)
-
-        // ViewBinding inflate
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -30,17 +28,6 @@ class SettingsActivity : AppCompatActivity() {
         setupColorSelection()
         setupSeekTimeSelection()
         setupRememberPositionSwitch()
-    }
-
-    // في ملف SettingsActivity.kt
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // تحقق إذا كان العنصر الذي تم الضغط عليه هو زر العودة
-        if (item.itemId == android.R.id.home) {
-            // إذا كان كذلك، أغلق النشاط الحالي (SettingsActivity)
-            finish() 
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun setupColorSelection() {
@@ -72,9 +59,8 @@ class SettingsActivity : AppCompatActivity() {
             if (old != themeId) {
                 prefs.edit().putInt("AppTheme", themeId).apply()
                 themeChanged = true
-                setResult(RESULT_OK) // إعلام MainActivity بوجود تغيير لتهيئة الثيم عند العودة
+                setResult(RESULT_OK)
             }
-            // لا نقوم بـ recreate() هنا لتجنب وميض الـ RadioButtons
         }
     }
 
@@ -111,9 +97,12 @@ class SettingsActivity : AppCompatActivity() {
         return prefs.getInt("AppTheme", R.style.Theme_Amine)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            onBackPressed()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onBackPressed() {
