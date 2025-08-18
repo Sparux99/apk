@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- صلاحية قراءة فيديوهات على Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- دعم للإصدارات الأقدم حتى Android 12 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
+    <!-- (اختياري) إذا تطبيقك يتصل بالإنترنت -->
+    <!-- <uses-permission android:name="android.permission.INTERNET" /> -->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,11 +17,12 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Aminep"
-        tools:targetApi="31">
+        tools:targetApi="33">  <!-- ارفعها 33 لأنك تستخدم READ_MEDIA_VIDEO -->
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.App.Starting">
+            android:theme="@style/Theme.Amine">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -25,6 +33,7 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".PlayerActivity"
             android:exported="true"

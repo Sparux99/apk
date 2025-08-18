@@ -29,14 +29,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-/**
- * PlayerActivity - مشغّل فيديو بسيط مبني على ExoPlayer مع نظام قفل للشاشة:
- * - يساعد على إخفاء كل عناصر التحكم، تعطيل الإيماءات، مع زر قفل يبقى ظاهرًا مؤقتًا.
- * - حالات القفل مُدارة عبر LockState (FSM بسيطة): UNLOCKED, LOCKED_VISIBLE, LOCKED_HIDDEN.
- * - يدعم الإيماءات لتغيير الصوت والإضاءة والسَّبق (seek).
- *
- * التحسينات المطلوبة: استخدم ViewBinding أو DataBinding لاحقًا لتقليل findViewById وتجنّب الأخطاء.
- */
 class PlayerActivity : AppCompatActivity() {
 
     // ---------- Views & Player ----------
@@ -62,6 +54,7 @@ class PlayerActivity : AppCompatActivity() {
 
     // ---------- Playback source ----------
     private var videoUriString: String? = null
+    private var initialPosition = 0L
 
     // ---------- Gesture state ----------
     private var startX = 0f
@@ -70,7 +63,7 @@ class PlayerActivity : AppCompatActivity() {
     private var gestureMode: GestureMode = GestureMode.NONE
     private var initialVolume = 0
     private var initialBrightness = 0f
-    private var initialPosition = 0L
+    private var initialSeekPosition = 0L
     private val gestureTolerance = 20f
 
     // ---------- Lock state (Finite State Machine) ----------
@@ -87,7 +80,7 @@ class PlayerActivity : AppCompatActivity() {
     private val gestureUIHideDelay = 500L  // إخفاء شريط الصوت/السطوع بعد التمرير
     private val lockButtonHideDelay = 1000L// إخفاء زر القفل بعد ظهوره مؤقتًا
 
-    // Runnables مُنفصلة لإدارة الإخفاء
+    // Runnables منفصلة لإدارة الإخفاء
     private val hideControlsRunnable = Runnable { overlay.visibility = View.GONE }
     private val hideOverlayTextRunnable = Runnable { tvOverlay.visibility = View.GONE }
     private val hideGestureUIRunnable = Runnable {
@@ -95,7 +88,7 @@ class PlayerActivity : AppCompatActivity() {
         volumeBar.visibility = View.GONE
     }
     private val hideLockButtonRunnable = Runnable {
-        // عند الانتقال إلى LOCKED_HIDDEN نريد زر القفل مخفياً
+        // عند الانتقال إلى LOCKED_HIDDEN، نخفي زر القفل
         if (lockState != LockState.UNLOCKED) btnLock.isVisible = false
     }
 
@@ -125,7 +118,6 @@ class PlayerActivity : AppCompatActivity() {
         // جمع الـ Views
         playerView = findViewById(R.id.player_view)
         playerView.useController = false
-
         overlay = findViewById(R.id.overlay)
         bottomBar = findViewById(R.id.bottom_bar)
         topBar = findViewById(R.id.top_bar)
@@ -144,11 +136,21 @@ class PlayerActivity : AppCompatActivity() {
 
         videoUriString = intent?.dataString
 
-        // استرجاع الحالة بعد تدوير الشاشة
+        // استرجاع حالة المشغل بعد تدوير الشاشة أو العودة للتطبيق
         savedInstanceState?.let {
             lockState = LockState.valueOf(it.getString("lockState", LockState.UNLOCKED.name))
-            val savedPosition = it.getLong("position", 0L)
-            initialPosition = savedPosition
+            initialPosition = it.getLong("position", 0L)
+        } ?: run {
+            // إذا لم يكن هناك savedInstanceState، تحقق من SharedPreferences
+        val prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
+        val rememberPositionEnabled = prefs.getBoolean("RememberPosition", true)
+        
+        if (rememberPositionEnabled) {
+            val videoId = intent.dataString?.hashCode() ?: 0
+            initialPosition = prefs.getLong("lastPosition_$videoId", 0L)
+        } else {
+            initialPosition = 0L
+
         }
 
         // ---------- أزرار التحكم ----------
@@ -158,7 +160,6 @@ class PlayerActivity : AppCompatActivity() {
                 LockState.UNLOCKED -> enterLock()
                 LockState.LOCKED_VISIBLE, LockState.LOCKED_HIDDEN -> exitLock()
             }
-            showControls()
         }
         btnPlayPause.setOnClickListener { togglePlayPause(); showControls() }
         btnSkipBack.setOnClickListener { skipSeconds(-10_000L); showControls() }
@@ -176,21 +177,23 @@ class PlayerActivity : AppCompatActivity() {
 
         // ---------- لمسات / إيماءات على PlayerView ----------
         playerView.setOnTouchListener { v, event ->
-            // إذا الشاشة مقفلة: امتصّ اللمسات، أظهر زر القفل مؤقتًا ثم أخفِه
+            // إذا الشاشة مقفلة، امتصّ اللمسات
             if (lockState != LockState.UNLOCKED) {
                 if (event.action == MotionEvent.ACTION_UP) {
-                    btnLock.isVisible = true
-                    handler.removeCallbacks(hideLockButtonRunnable)
-                    handler.postDelayed(hideLockButtonRunnable, lockButtonHideDelay)
+                    // عند لمس الشاشة المقفلة، ننتقل للحالة المرئية
                     if (lockState == LockState.LOCKED_HIDDEN) {
                         lockState = LockState.LOCKED_VISIBLE
                     }
+                    // نظهر زر القفل ثم نخفيه تلقائياً
+                    btnLock.isVisible = true
+                    handler.removeCallbacks(hideLockButtonRunnable)
+                    handler.postDelayed(hideLockButtonRunnable, lockButtonHideDelay)
                 }
                 applyState()
                 return@setOnTouchListener true
             }
 
-            // إذا غير مقفل: نفذ منطق الإيماءات الطبيعي
+            // إذا غير مقفل، نفذ منطق الإيماءات الطبيعي
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     startX = event.x
@@ -199,7 +202,7 @@ class PlayerActivity : AppCompatActivity() {
                     gestureMode = GestureMode.NONE
                     initialVolume = getCurrentVolume()
                     initialBrightness = getInitialBrightness()
-                    initialPosition = player?.currentPosition ?: 0L
+                    initialSeekPosition = player?.currentPosition ?: 0L
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (!isDragging) return@setOnTouchListener true
@@ -265,7 +268,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ UI / State helpers ------------------
-
     private fun applyState() {
         when (lockState) {
             LockState.UNLOCKED -> {
@@ -273,6 +275,7 @@ class PlayerActivity : AppCompatActivity() {
                 bottomBar.isVisible = true
                 topBar.isVisible = true
                 seekBar.isEnabled = true
+                btnLock.setImageResource(R.drawable.ic_lock_open)
                 btnLock.isVisible = true
                 setGesturesEnabled(true)
                 enableImmersive(false)
@@ -282,6 +285,7 @@ class PlayerActivity : AppCompatActivity() {
                 bottomBar.isVisible = false
                 topBar.isVisible = false
                 seekBar.isEnabled = false
+                btnLock.setImageResource(R.drawable.ic_lock_closed)
                 btnLock.isVisible = true
                 setGesturesEnabled(false)
                 enableImmersive(true)
@@ -291,6 +295,7 @@ class PlayerActivity : AppCompatActivity() {
                 bottomBar.isVisible = false
                 topBar.isVisible = false
                 seekBar.isEnabled = false
+                btnLock.setImageResource(R.drawable.ic_lock_closed)
                 btnLock.isVisible = false
                 setGesturesEnabled(false)
                 enableImmersive(true)
@@ -302,6 +307,7 @@ class PlayerActivity : AppCompatActivity() {
         handler.removeCallbacks(hideControlsRunnable)
         handler.removeCallbacks(hideLockButtonRunnable)
         overlay.visibility = View.VISIBLE
+        // لا نغير حالة القفل هنا، فقط نظهر التحكمات المؤقتة
         handler.postDelayed(hideControlsRunnable, autoHideDelay)
     }
 
@@ -322,7 +328,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ Playback controls ------------------
-
     private fun togglePlayPause() {
         player?.let { p ->
             if (p.isPlaying) p.pause() else p.play()
@@ -357,7 +362,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ Gesture handlers ------------------
-
     private fun handleVolumeGesture(dy: Float) {
         val screenH = resources.displayMetrics.heightPixels
         val delta = (-dy / screenH) * 2.5f
@@ -387,7 +391,7 @@ class PlayerActivity : AppCompatActivity() {
         val duration = player?.duration ?: 0L
         if (duration <= 0) return
         val deltaMs = ((dx / w) * (duration * 0.15)).toLong()
-        val target = (initialPosition + deltaMs).coerceIn(0L, duration)
+        val target = (initialSeekPosition + deltaMs).coerceIn(0L, duration)
         player?.seekTo(target)
     }
 
@@ -402,7 +406,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ Fullscreen & Immersive ------------------
-
     private fun toggleFullscreen() {
         isFullscreen = !isFullscreen
         requestedOrientation = if (isFullscreen) {
@@ -434,7 +437,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ Lock state transitions ------------------
-
     private fun enterLock() {
         lockState = LockState.LOCKED_VISIBLE
         applyState()
@@ -455,7 +457,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ------------------ Player init / release ------------------
-
     override fun onStart() {
         super.onStart()
         initializePlayer(videoUriString)
@@ -479,6 +480,18 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+    
+        val prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
+        val rememberPositionEnabled = prefs.getBoolean("RememberPosition", true)
+    
+        if (rememberPositionEnabled) {
+            val videoId = intent.dataString?.hashCode() ?: 0
+            val editor = prefs.edit()
+            editor.putLong("lastPosition_$videoId", player?.currentPosition ?: 0L)
+            editor.apply()
+        }
+    
+        initialPosition = player?.currentPosition ?: 0L
         releasePlayer()
     }
 
@@ -486,7 +499,6 @@ class PlayerActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putString("lockState", lockState.name)
         outState.putLong("position", player?.currentPosition ?: initialPosition)
-        outState.putBoolean("playWhenReady", player?.playWhenReady ?: true)
     }
 
     private fun initializePlayer(uriString: String?) {
@@ -495,11 +507,11 @@ class PlayerActivity : AppCompatActivity() {
 
         player = ExoPlayer.Builder(this).build().also { exo ->
             playerView.player = exo
-
             val item = MediaItem.fromUri(uriToPlay)
             exo.setMediaItem(item)
             exo.playWhenReady = true
             exo.prepare()
+            exo.seekTo(initialPosition) // استعادة الموضع المحفوظ
 
             exo.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -513,10 +525,8 @@ class PlayerActivity : AppCompatActivity() {
                 }
             })
         }
-
         handler.removeCallbacks(updateProgressRunnable)
         handler.post(updateProgressRunnable)
-
         applyState()
         showControls()
     }
@@ -527,7 +537,6 @@ class PlayerActivity : AppCompatActivity() {
         handler.removeCallbacks(hideOverlayTextRunnable)
         handler.removeCallbacks(hideGestureUIRunnable)
         handler.removeCallbacks(hideLockButtonRunnable)
-
         playerView.player = null
         player?.release()
         player = null

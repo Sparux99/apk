@@ -32,6 +32,17 @@ class SettingsActivity : AppCompatActivity() {
         setupRememberPositionSwitch()
     }
 
+    // في ملف SettingsActivity.kt
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // تحقق إذا كان العنصر الذي تم الضغط عليه هو زر العودة
+        if (item.itemId == android.R.id.home) {
+            // إذا كان كذلك، أغلق النشاط الحالي (SettingsActivity)
+            finish() 
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun setupColorSelection() {
         val colorRadioGroup = binding.colorRadioGroup
         val currentTheme = prefs.getInt("AppTheme", R.style.Theme_Amine)
