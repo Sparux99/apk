@@ -25,6 +25,11 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         title = "الإعدادات"
 
+        val downloadButton = findViewById<Button>(R.id.open_download_screen_button)
+        downloadButton.setOnClickListener {
+        startActivity(Intent(this, DownloadActivity::class.java))
+        }
+
         setupColorSelection()
         setupSeekTimeSelection()
         setupRememberPositionSwitch()

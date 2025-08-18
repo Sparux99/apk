@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="بحث"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="فرز"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/sort_by_date_desc"
+                android:title="فرز حسب التاريخ (الأحدث أولاً)" />
+            <item
+                android:id="@+id/sort_by_date_asc"
+                android:title="فرز حسب التاريخ (الأقدم أولاً)" />
+            <item
+                android:id="@+id/sort_by_name_asc"
+                android:title="فرز حسب الاسم (أ-ي)" />
+            <item
+                android:id="@+id/sort_by_name_desc"
+                android:title="فرز حسب الاسم (ي-أ)" />
+        </menu>
+    </item>
+</menu>

@@ -82,7 +82,16 @@ class PlayerActivity : AppCompatActivity() {
     private val lockButtonHideDelay = 1000L// إخفاء زر القفل بعد ظهوره مؤقتًا
 
     // إخفاءات
-    private val hideControlsRunnable = Runnable { overlay.visibility = View.GONE }
+    private val hideControlsRunnable = Runnable { 
+        if (lockState == LockState.UNLOCKED) {
+            overlay.visibility = View.GONE
+        } else if (lockState == LockState.LOCKED_VISIBLE) {
+            // نخفي البارات فقط، ونترك overlay ظاهر عشان يظل زر القفل
+            bottomBar.isVisible = false
+            topBar.isVisible = false
+        }
+    }
+
     private val hideOverlayTextRunnable = Runnable { tvOverlay.visibility = View.GONE }
     private val hideGestureUIRunnable = Runnable {
         brightnessBar.visibility = View.GONE
@@ -164,9 +173,18 @@ class PlayerActivity : AppCompatActivity() {
                 LockState.LOCKED_VISIBLE, LockState.LOCKED_HIDDEN -> exitLock()
             }
         }
-        btnPlayPause.setOnClickListener { togglePlayPause(); showControls() }
-        btnSkipBack.setOnClickListener { skipSeconds(-10_000L); showControls() }
-        btnSkipForward.setOnClickListener { skipSeconds(+10_000L); showControls() }
+        
+        val prefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
+        val skipMs = prefs.getInt("SkipDuration", 10) * 1000L
+
+        btnPlayPause.setOnClickListener { if (player?.playbackState == Player.STATE_ENDED) {
+                                            player?.seekTo(0);
+                                            player?.play();
+                                        } else {
+                                                togglePlayPause();
+                                                }; showControls(); }
+        btnSkipBack.setOnClickListener {  skipSeconds(-skipMs); showControls() }
+        btnSkipForward.setOnClickListener {  skipSeconds(+skipMs); showControls() }
         btnSpeed.setOnClickListener { showSpeedMenu(it as View); showControls() }
 
         // SeekBar listener
@@ -312,9 +330,17 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun hideControls() {
-        handler.removeCallbacks(hideControlsRunnable)
+    handler.removeCallbacks(hideControlsRunnable)
+    if (lockState == LockState.UNLOCKED) {
         overlay.visibility = View.GONE
+    } else if (lockState == LockState.LOCKED_VISIBLE) {
+        bottomBar.isVisible = false
+        topBar.isVisible = false
+        // نخلي overlay ظاهر حتى يظل زر القفل
+        overlay.visibility = View.VISIBLE
+        btnLock.isVisible = true
     }
+}
 
     private fun toggleControlsVisibility() {
         if (overlay.visibility == View.VISIBLE) hideControls() else showControls()
@@ -532,6 +558,21 @@ class PlayerActivity : AppCompatActivity() {
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_READY) updatePlayIcon()
                 }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (playbackState == Player.STATE_ENDED) {
+                        // إعادة تعيين الموضع
+                        initialPosition = 0L
+                        player?.seekTo(0)
+                        // إظهار زر إعادة التشغيل بدل التشغيل/الإيقاف
+                        btnPlayPause.setImageResource(R.drawable.ic_replay)
+                        // إلغاء إبقاء الشاشة مشتعلة
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    } else if (playbackState == Player.STATE_READY) {
+                        updatePlayIcon()
+                    }
+}
+
             })
         }
         handler.removeCallbacks(updateProgressRunnable)

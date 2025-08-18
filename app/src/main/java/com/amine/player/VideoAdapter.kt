@@ -27,8 +27,10 @@ class VideoAdapter(
     override fun getItemCount() = videos.size
 
     class VideoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var videos: List<Video>
         private val thumbnail: ImageView = itemView.findViewById(R.id.video_thumbnail)
         private val title: TextView = itemView.findViewById(R.id.video_title)
+        private val dateAdded: TextView = itemView.findViewById(R.id.video_date_added)
 
         fun bind(video: Video) {
             title.text = video.title.substringBeforeLast('.')
@@ -39,5 +41,13 @@ class VideoAdapter(
                 .centerCrop()
                 .into(thumbnail)
         }
+
+        val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+        dateAdded.text = sdf.format(Date(video.dateAdded * 1000))
+
+        Glide.with(itemView.context)
+            .load(video.contentUri)
+            .centerCrop()
+            .into(thumbnail)
     }
 }

@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- صلاحية قراءة فيديوهات على Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <!-- دعم للإصدارات الأقدم حتى Android 12 -->
@@ -46,5 +48,10 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+        
+        <activity
+        android:name=".DownloadActivity"
+        android:exported="false"
+        android:parentActivityName=".SettingsActivity" />
     </application>
 </manifest>

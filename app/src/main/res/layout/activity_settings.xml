@@ -121,5 +121,12 @@
             android:layout_marginTop="8dp"
             android:padding="8dp" />
 
+        <Button
+        android:id="@+id/open_download_screen_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="تحميل فيديو من رابط" />
+
     </LinearLayout>
 </ScrollView>
